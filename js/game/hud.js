@@ -1,6 +1,4 @@
-/**
- * Heads-up display and minimap drawing.
- */
+// HUD text and minimap drawing.
 
 import { PLAYER_STATE } from './states.js';
 

@@ -1,6 +1,4 @@
-/**
- * The two state machines' state names, shared by the modules that read them.
- */
+// State names for the player and lurker state machines.
 
 export const PLAYER_STATE = Object.freeze({
   MECH: 'mech',

@@ -1,6 +1,4 @@
-/**
- * Third-person camera follow and free-look orbit.
- */
+// Camera follow and free-look orbit.
 
 import * as THREE from 'three';
 

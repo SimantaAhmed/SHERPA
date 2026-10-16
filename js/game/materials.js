@@ -1,6 +1,4 @@
-/**
- * Shared toon material helpers.
- */
+// Toon material helpers used across the game.
 
 import * as THREE from 'three';
 

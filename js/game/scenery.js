@@ -1,6 +1,4 @@
-/**
- * Static world dressing: atmosphere, mountains, fog, snow, ruins and props.
- */
+// World dressing: atmosphere, mountains, fog, snow, ruins and props.
 
 import * as THREE from 'three';
 import { asset } from '../util/assets.js';

@@ -1,7 +1,4 @@
-/**
- * Lurker AI: spawning, the patrol/alert/pursue/return state machine,
- * steering, separation, backup calls and projectiles.
- */
+// Lurker spawning, the patrol/alert/pursue/return states, steering and projectiles.
 
 import * as THREE from 'three';
 import { asset } from '../util/assets.js';

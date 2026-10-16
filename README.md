@@ -2,11 +2,11 @@
 
 **Play it in the browser: https://simantaahmed.github.io/SHERPA/**
 
-Built for COMP 4303 (AI for Games) at Memorial University. The AI topics below
-are implemented on top of the course's in-class source pack; see
-[Credits](#credits) for what came from where.
+Made for COMP 4303 (AI for Games) at Memorial University, Winter 2026. The AI
+is built on the in-class source pack, and [Credits](#credits) says what came
+from where.
 
-A third-person stealth infiltration game built with Three.js. The term sherpa refers to a member of a Himalayan people living on the borders of Nepal and Tibet, renowned for their skill in mountaineering. The game takes place in one of the mountains of Nepal where you are infiltrating a ruin base full of Lurkers — aliens mining the mountain while damaging the landscape with a tar-like substance where man-made machines malfunction.
+A third-person stealth infiltration game built with Three.js. The term sherpa refers to a member of a Himalayan people living on the borders of Nepal and Tibet, renowned for their skill in mountaineering. The game takes place in one of the mountains of Nepal where you are infiltrating a ruin base full of Lurkers, aliens mining the mountain while damaging the landscape with a tar-like substance where man-made machines malfunction.
 
 The player pilots a transformable mech called FOX across procedurally generated terrain. The objective each run is to locate and hack all corrupted data terminals, then reach the extraction point. The reason for doing this is to prevent the lurkers from digging out the mountains. The lurkers patrol the map and will pursue on detection. Health does not regenerate, and the full layout changes every run.
 
@@ -36,18 +36,18 @@ above serves.
 |-----|--------|
 | `W A S D` | Move |
 | `T` | Toggle Mech Mode / Drive Mode |
-| `Shift` | Crouch (Mech) or cut engine (Drive) — reduces detection radius |
+| `Shift` | Crouch (Mech) or cut engine (Drive), reduces detection radius |
 | `E` (hold) | Hack terminal while in range |
 | `Space` | Jump (Mech Mode only) |
-| `Hold Left Mouse` | Free-look camera — drag to orbit around player |
+| `Hold Left Mouse` | Free-look camera, drag to orbit around player |
 | `R` | Restart (on end screen) |
-| `Y` | Debug shortcut — instantly unlock extraction point (saves time when testing) |
+| `Y` | Debug shortcut, instantly unlocks extraction point (saves time when testing) |
 
 ---
 
 ## Objective
 
-1. Find all **data terminals** (server racks) on the map — 3 to 5 per run.
+1. Find all **data terminals** (server racks) on the map, 3 to 5 per run.
 2. Stand within range and hold `E` for **2.2 seconds** to complete a hack. Moving or releasing E cancels it.
 3. Once all terminals are hacked, a **blue extraction ring** appears at the map centre.
 4. Reach the extraction ring to finish the run.
@@ -58,13 +58,13 @@ above serves.
 
 ## Topics Implemented
 
-### 1. Complex Movement — Collision Avoidance
+### 1. Complex Movement: Collision Avoidance
 **How to see it:** Get detected and let multiple lurkers chase you at once. They spread apart during pursuit rather than stacking on each other.
 
 Each lurker computes a separation steering force against every other lurker within a minimum desired distance and adds it to its acceleration (`applyLurkerSeparation`). A second pass (`applyLurkerObstacleAvoidance`) pushes lurkers away from ruin bounding boxes to prevent them from clipping into obstacles.
 
-### 2. Decision Making — State Machine
-**How to see it:** Walk into a lurker's orange detection cone. A `!` sprite appears above its head — break line-of-sight within about one second to cancel detection. If you don't, it escalates to pursuit and radios nearby units.
+### 2. Decision Making: State Machine
+**How to see it:** Walk into a lurker's orange detection cone. A `!` sprite appears above its head. Break line-of-sight within about one second to cancel detection. If you don't, it escalates to pursuit and radios nearby units.
 
 Two parallel state machines:
 - **Player:** `MECH` ↔ `DRIVE` (press T), `HACKING` (hold E near terminal)
@@ -72,24 +72,24 @@ Two parallel state machines:
 
 Implemented as a `switch` block in `updateLurkers` (`js/game/lurkers.js`).
 
-### 3. Pathfinding — Jump Point Search
+### 3. Pathfinding: Jump Point Search
 **How to see it:** Enter pursuit range near a ruin. Lurkers navigate around it to reach you rather than walking into the wall.
 
 `TileMap.js` discretizes the heightmap into a 2D grid with nodes blocked for steep slopes and ruin footprints. `JPS.js` finds paths by pruning nodes that aren't directional jump points, using Manhattan distance as the heuristic. Each lurker replans every 0.35 seconds. Used in `updatePursueMovement`.
 
-### 4. Procedural Content Generation — Perlin Noise
+### 4. Procedural Content Generation: Perlin Noise
 **How to see it:** Press `R` to restart several times after dying. Terrain, ruins, blackout zones, terminal positions, and the secret character's spawn all land differently each run.
 
-`Perlin.js` implements gradient noise based on the in-class source code. Two key changes were made from the source: (1) the constructor now accepts an `rng` parameter so the LCG drives the gradient grid instead of `Math.random()`, enabling seed-reproducible terrain; (2) the `noise()` method uses `wrapValue`/`wrapIndex` helpers to handle negative coordinate wrapping correctly, which was necessary to support the larger map size without tiling artefacts. `TileMap.js` samples it to assign height per tile. A second independent noise pass marks **blackout zones** — where the minimap goes dark and lurker detection range doubles, shown as a fog overlay. Terminal candidates are filtered to open, non-blackout tiles.
+`Perlin.js` implements gradient noise based on the in-class source code. Two key changes were made from the source: (1) the constructor now accepts an `rng` parameter so the LCG drives the gradient grid instead of `Math.random()`, enabling seed-reproducible terrain; (2) the `noise()` method uses `wrapValue`/`wrapIndex` helpers to handle negative coordinate wrapping correctly, which was necessary to support the larger map size without tiling artefacts. `TileMap.js` samples it to assign height per tile. A second independent noise pass marks **blackout zones**, where the minimap goes dark and lurker detection range doubles, shown as a fog overlay. Terminal candidates are filtered to open, non-blackout tiles.
 
-### 5. Simple Movement — Pursue
+### 5. Simple Movement: Pursue
 **How to see it:** Once a lurker enters pursuit, run perpendicular to it. It leads its steering toward your predicted position rather than trailing you directly.
 
 `SteeringBehaviours.pursue` projects the player's current velocity by a short time horizon to get a predicted future position, then seeks that point. Combined with JPS for routing and separation for spacing, lurkers can cut off escape angles. Used in `updatePursueMovement`.
 
 ---
 
-## Pseudorandom Number Generation (PRNG) — Linear Congruential Generator
+## Pseudorandom Number Generation (PRNG): Linear Congruential Generator
 
 All procedural generation, AI randomness, and world logic use a custom **Linear Congruential Generator (LCG)** implemented in `js/util/LCG.js` instead of `Math.random()`. The LCG is seeded at the start of each run using `Date.now()`.
 
@@ -99,9 +99,9 @@ s_(n+1) = (1664525 * s_n + 1013904223) % 2^31
 ```
 
 The LCG is the single source of randomness for:
-- Terrain generation (passed into `Perlin.js` — gradients built from `rng.next()` instead of `Math.random()`)
+- Terrain generation (passed into `Perlin.js`, gradients built from `rng.next()` instead of `Math.random()`)
 - Blackout zone generation (second independent Perlin pass, same rng instance)
-- Entity spawning — ruins, terminals, lurkers, the secret character
+- Entity spawning: ruins, terminals, lurkers, the secret character
 - AI wandering angle updates (`SteeringBehaviours.wander`)
 - Mountain vertex distortion (cosmetic jitter in `js/game/scenery.js`)
 
@@ -135,18 +135,23 @@ with or endorsed by them.
 
 ### Code
 
-Three.js handles rendering. No library was used for any AI topic: the steering,
-pathfinding, state machines and noise are all course or original code.
+Three.js only does the rendering. Nothing else is a library: the steering,
+pathfinding, state machines and noise are course code or mine.
 
-The base AI came from the course's in-class source pack (steering behaviours,
-pathfinding including JPS, state machines, the tile map and the Perlin
-implementation). Built on top of that, this project adds the game itself: the
-player and lurker state machines, detection and pursuit, hacking and
-extraction, the minimap and fog, blackout zones, water tiles, the animation
-work, the seeded LCG, and the wiring that makes the world reproducible from a
-seed. The section below lists file by file what changed.
+From the in-class pack: steering behaviours, pathfinding (JPS, Pathfinder,
+MinHeap), the state machine base, the tile map and the Perlin implementation.
+Published with the instructor's permission.
+
+Mine: the game on top of it. The player and lurker state machines, detection
+and pursuit, hacking and extraction, the minimap and fog, blackout zones,
+water tiles, the animations, the seeded LCG, and everything that makes a run
+reproducible from one seed. The file list further down says what I changed in
+the pack files.
 
 ## Code Layout
+
+I split the game out of `World.js` after the course ended; it had grown to
+about 2,600 lines in one file.
 
 ```
 js/World.js         game state, init/update/render, wiring
@@ -164,7 +169,7 @@ js/ai, js/maps, js/pcg   pathfinding, tiles and noise (see Credits)
 ## Creative Additions
 
 ### Water Tiles: Walkable with Speed Penalty
-Water tiles are walkable, but slow the player down significantly. When the player is on a water tile, movement speed, acceleration, and drag are all penalised. Water tiles are assigned a higher movement cost in `Tile.js` and are considered walkable in both `Tile.isWalkable` and `TileMap.isTileWalkable`. This adds tactical depth — crossing water to escape a lurker is possible but risky.
+Water tiles are walkable, but slow the player down significantly. When the player is on a water tile, movement speed, acceleration, and drag are all penalised. Water tiles are assigned a higher movement cost in `Tile.js` and are considered walkable in both `Tile.isWalkable` and `TileMap.isTileWalkable`. This adds tactical depth. Crossing water to escape a lurker is possible but risky.
 
 ### Jump-Forward Mechanic
 If the player is moving and presses jump (`Space`), they leap forward in the direction they are facing. This works in both Mech and Drive modes (Drive mode uses a lower jump height). Useful for crossing water quickly or breaking a lurker's pursuit angle.
@@ -180,10 +185,10 @@ Added a ship underneath the mech in Driver mode. I hope this was unique in itsel
 
 ### `pcg/Perlin.js`
 Adapted from `perlin-source-mar19`. Two changes from the original:
-1. Constructor accepts an `rng` parameter (`{ next() }` interface) — the LCG is passed in, replacing all `Math.random()` calls so terrain is seed-reproducible.
+1. Constructor accepts an `rng` parameter (`{ next() }` interface), so the LCG is passed in, replacing all `Math.random()` calls so terrain is seed-reproducible.
 2. `wrapValue` / `wrapIndex` helpers replace the raw modulo in `noise()` to correctly handle negative coordinates that appear at large map sizes.
 
-### `util/LCG.js` — New File
+### `util/LCG.js` (new file)
 Custom LCG PRNG. Not present in any starter code zip. Written from scratch following the algorithm from the pseudorandomness lecture slides (linear congruential generator, Numerical Recipes constants).
 
 ### `maps/TileMap.js`
@@ -206,4 +211,4 @@ Major additions: full game loop (player state machine, lurker state machine, hac
 - Random spawning can occasionally place the player inside geometry. Refreshing the browser resolves this; it is very rare.
 - The secret character is Sherma from *Hollow Knight: Silksong*. The text displayed is lyrics from his in-game song. Audio was omitted to keep gameplay smooth.
 - Camera orbit can occasionally drift; it is centred on the player rather than cursor-driven.
-- Enemy detection can glitch at close range — reaction time was intentionally increased to prevent lurkers from immediately locking onto the player.
+- Enemy detection can glitch at close range. Reaction time was intentionally increased to prevent lurkers from immediately locking onto the player.

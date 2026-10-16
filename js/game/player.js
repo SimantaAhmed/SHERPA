@@ -1,6 +1,4 @@
-/**
- * The player mech: creation, mode switching, movement, jumping and animation.
- */
+// The player mech: creation, mode switching, movement, jumping, animation.
 
 import * as THREE from 'three';
 import { asset } from '../util/assets.js';

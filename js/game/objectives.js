@@ -1,6 +1,4 @@
-/**
- * Run objectives: data terminals, the extraction point and the secret character.
- */
+// Terminals, the extraction point and the secret character.
 
 import * as THREE from 'three';
 import { asset } from '../util/assets.js';
