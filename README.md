@@ -195,6 +195,11 @@ keep gameplay smooth). The model is fan art, and the character and song belong
 to Team Cherry. This project is non-commercial and not affiliated with or
 endorsed by them.
 
+### Font
+
+The end screens use [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P)
+by CodeMan38, under the SIL Open Font License, bundled through `@fontsource/press-start-2p`.
+
 ### Code
 
 Three.js only does the rendering. Nothing else is a library: the steering,
