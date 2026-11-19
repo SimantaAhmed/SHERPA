@@ -39,12 +39,6 @@ export function createPlayer(world) {
     jumpDuration: 0.55,
     jumpHeight: 2.4,
     jumpOffset: 0,
-    longJumpActive: false,
-    longJumpTimer: 0,
-    longJumpDuration: 0.7,
-    longJumpHeight: 3.2,
-    longJumpDistance: 13,
-    longJumpOffset: 0,
     vehicleLiftOffset: 0.38,
     hitReactionTimer: 0,
     hitBlinkTimer: 0,
@@ -65,8 +59,6 @@ export function createPlayer(world) {
   world.scene.add(mech.mesh);
   loadMechVisual(world);
   loadSpaceshipVisual(world);
-
-  // world.applyPlayerTransformVisualState();
 }
 
 export function loadMechVisual(world) {
@@ -381,10 +373,6 @@ export function updatePlayerJump(world, dt) {
   }
 }
 
-export function updatePlayerLongJump(world, dt) {
-  // Long jump removed
-}
-
 export function updatePlayerAnimation(world, dt) {
   if (!world.player.mechMixer || !world.player.mechRunAction) {
     return;
@@ -548,10 +536,7 @@ export function syncPlayerVisuals(world) {
   const mesh = world.player.entity.mesh;
   const h = world.map.getHeightAtPosition(world.player.position);
   let vehicleLift = world.player.state === PLAYER_STATE.DRIVE ? world.player.vehicleLiftOffset : 0;
-  let jumpY = world.player.modeJumpOffset + world.player.jumpOffset;
-  if (world.player.state === PLAYER_STATE.DRIVE) {
-    jumpY += world.player.longJumpOffset;
-  }
+  const jumpY = world.player.modeJumpOffset + world.player.jumpOffset;
   mesh.position.set(
     world.player.position.x,
     h + world.player.entity.scale.y / 2 + jumpY + vehicleLift,
