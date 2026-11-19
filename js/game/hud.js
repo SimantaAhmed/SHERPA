@@ -1,5 +1,6 @@
 // HUD text and minimap drawing.
 
+import '@fontsource/press-start-2p';
 import { PLAYER_STATE } from './states.js';
 
 export function createHud(world) {
@@ -86,24 +87,40 @@ export function createHud(world) {
   speech.style.display = 'none';
   root.appendChild(speech);
 
+  // End screen: a dark band across the middle with a pixel-font title.
   const gameOver = document.createElement('div');
   gameOver.style.position = 'absolute';
-  gameOver.style.left = '50%';
-  gameOver.style.top = '50%';
-  gameOver.style.transform = 'translate(-50%, -50%)';
-  gameOver.style.padding = '16px 22px';
-  gameOver.style.background = 'rgba(0, 0, 0, 0.82)';
-  gameOver.style.border = '1px solid rgba(250, 180, 180, 0.65)';
-  gameOver.style.fontSize = '22px';
+  gameOver.style.inset = '0';
+  gameOver.style.display = 'flex';
+  gameOver.style.flexDirection = 'column';
+  gameOver.style.alignItems = 'center';
+  gameOver.style.justifyContent = 'center';
+  gameOver.style.gap = '28px';
+  gameOver.style.background = 'linear-gradient(transparent 30%, rgba(0, 0, 0, 0.78) 42%, rgba(0, 0, 0, 0.78) 58%, transparent 70%)';
+  gameOver.style.fontFamily = '"Press Start 2P", monospace';
+  gameOver.style.webkitFontSmoothing = 'none';
   gameOver.style.textAlign = 'center';
-  gameOver.style.whiteSpace = 'pre-line';
-  gameOver.style.display = 'none';
-  gameOver.textContent = 'GAME OVER\nPress R to start over';
+  gameOver.style.opacity = '0';
+  gameOver.style.transition = 'opacity 1.4s ease-in';
+  gameOver.style.visibility = 'hidden';
+
+  const endTitle = document.createElement('div');
+  endTitle.style.fontSize = 'clamp(28px, 7vw, 64px)';
+  endTitle.style.letterSpacing = '0.12em';
+
+  const endHint = document.createElement('div');
+  endHint.style.fontSize = '12px';
+  endHint.style.color = '#c9d1d9';
+  endHint.style.letterSpacing = '0.08em';
+  endHint.textContent = 'PRESS R TO TRY AGAIN';
+
+  gameOver.appendChild(endTitle);
+  gameOver.appendChild(endHint);
   root.appendChild(gameOver);
 
   document.body.appendChild(root);
 
-  world.hud = { root, panel, health, score, mode, objective, status, speech, gameOver, healthbarFill, healthbarText };
+  world.hud = { root, panel, health, score, mode, objective, status, speech, gameOver, endTitle, endHint, healthbarFill, healthbarText };
   world.minimapCanvas = minimap;
   world.minimapCtx = minimap.getContext('2d');
 }
@@ -137,16 +154,19 @@ export function updateHud(world, dt) {
     : `Terminals: ${completed}/${world.terminals.length}`;
 
   if (world.gameOver) {
-    if (world.endScreenType === 'clear') {
-      world.hud.gameOver.style.border = '1px solid rgba(140, 255, 190, 0.72)';
-      world.hud.gameOver.textContent = 'GAME CLEAR\nPress R to start over';
-    } else {
-      world.hud.gameOver.style.border = '1px solid rgba(250, 180, 180, 0.65)';
-      world.hud.gameOver.textContent = 'GAME OVER\nPress R to start over';
-    }
-    world.hud.gameOver.style.display = 'block';
+    const cleared = world.endScreenType === 'clear';
+    world.hud.endTitle.textContent = cleared ? 'GAME CLEAR' : 'YOU DIED';
+    // Amber or teal with a hard offset shadow, so it reads as pixel art.
+    world.hud.endTitle.style.color = cleared ? '#5fe0c4' : '#e8692c';
+    world.hud.endTitle.style.textShadow = cleared
+      ? '4px 4px 0 #0b3b35, 8px 8px 0 rgba(0, 0, 0, 0.6)'
+      : '4px 4px 0 #5a1a06, 8px 8px 0 rgba(0, 0, 0, 0.6)';
+    world.hud.endHint.textContent = cleared ? 'PRESS R FOR A NEW RUN' : 'PRESS R TO TRY AGAIN';
+    world.hud.gameOver.style.visibility = 'visible';
+    world.hud.gameOver.style.opacity = '1';
   } else {
-    world.hud.gameOver.style.display = 'none';
+    world.hud.gameOver.style.visibility = 'hidden';
+    world.hud.gameOver.style.opacity = '0';
   }
 
   const hackInfo = world.player.hackTarget
