@@ -251,3 +251,12 @@ Major additions: full game loop (player state machine, lurker state machine, hac
 - The secret character is Sherma from *Hollow Knight: Silksong*. The text displayed is lyrics from his in-game song. Audio was omitted to keep gameplay smooth.
 - Camera orbit can occasionally drift; it is centred on the player rather than cursor-driven.
 - Enemy detection can glitch at close range. Reaction time was intentionally increased to prevent lurkers from immediately locking onto the player.
+
+---
+
+## Dev Notes
+
+The project is paused for now. Next up when I return to it:
+
+- Rigging FOX and the lurkers properly, so the animations stop relying on the stock clips.
+- Remodelling the main assets to give the game its own look instead of the free models listed in [Credits](#credits).
