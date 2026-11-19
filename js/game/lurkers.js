@@ -264,14 +264,16 @@ export function updateLurkers(world, dt) {
     if (lurker.state === LURKER_STATE.PURSUE || lurker.detectionCheckTimer <= 0) {
       lurker.detectionCheckTimer = lodProfile.detectionInterval;
 
-      const forward = lurker.velocity.lengthSq() > 0.1
-        ? lurker.velocity.clone().normalize()
-        : new THREE.Vector3(0, 0, 1);
+      // Use the way the mesh faces so detection matches the visible cone,
+      // even after the lurker stops moving.
+      const forward = new THREE.Vector3();
+      lurker.mesh.getWorldDirection(forward);
+      forward.y = 0;
+      forward.normalize();
 
       const normalizedToPlayer = toPlayer.lengthSq() > 0 ? toPlayer.clone().normalize() : new THREE.Vector3(0, 0, 1);
       const angle = forward.angleTo(normalizedToPlayer);
-      const reverseAngle = Math.PI - angle;
-      const inCone = Math.min(angle, reverseAngle) <= lurker.detectionAngle;
+      const inCone = angle <= lurker.detectionAngle;
       const hasSightLine = world.hasLineOfSight(lurker.position, world.player.position);
 
       const canSee = inCone && distance <= detectionRange && hasSightLine;
