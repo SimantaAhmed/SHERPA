@@ -30,6 +30,7 @@ by Simanta Ahmed
 | Seeded random number generator | [`js/util/LCG.js`](js/util/LCG.js) |
 | Terrain, water and blackout zones from noise | [`js/maps/TileMap.js`](js/maps/TileMap.js) |
 | Jump Point Search pathfinding | [`js/ai/pathfinding/JPS.js`](js/ai/pathfinding/JPS.js) |
+| All gameplay tuning in one place | [`js/game/tuning.js`](js/game/tuning.js) |
 
 ## Story
 
@@ -221,6 +222,7 @@ js/game/objectives.js  terminals, extraction point, secret character
 js/game/scenery.js  atmosphere, mountains, fog, snow, ruins
 js/game/hud.js      HUD and minimap
 js/game/camera.js   follow and free-look camera
+js/game/tuning.js   every gameplay number: speeds, ranges, timers, damage
 js/ai, js/maps, js/pcg   pathfinding, tiles and noise (see Credits)
 ```
 
