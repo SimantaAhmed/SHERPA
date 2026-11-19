@@ -10,6 +10,7 @@ import { spawnLurkers, updateLurkerProjectiles, updateLurkers } from './game/lur
 import { spawnExtractionPoint, spawnSecretCharacter, spawnTerminals, updateExtractionPoint, updateSecretCharacter, updateTerminals } from './game/objectives.js';
 import { createHud, updateHud, updateMinimap } from './game/hud.js';
 import { updateCamera } from './game/camera.js';
+import { CAMERA, HACKING, WORLD } from './game/tuning.js';
 
 export class World {
   constructor(rng) {
@@ -32,9 +33,8 @@ export class World {
     this.tracks = [];
     this.snow = null;
 
-    this.pathReplanInterval = 0.35;
     this.swarmCooldown = 0;
-    this.hackDuration = 2.2;
+    this.hackDuration = HACKING.duration;
 
     this.score = 0;
     this.runFinished = false;
@@ -49,8 +49,8 @@ export class World {
 
     this.normalFogColor = new THREE.Color('#6b8299');
     this.blackoutFogColor = new THREE.Color('#3a4451');
-    this.normalFogDensity = 0.0085;
-    this.blackoutFogDensity = 0.015;
+    this.normalFogDensity = WORLD.normalFogDensity;
+    this.blackoutFogDensity = WORLD.blackoutFogDensity;
 
     this.cameraFollowPos = null;
     this.cameraLookPos = null;
@@ -58,13 +58,13 @@ export class World {
 
     // Camera controls for orbiting around the player (hold left mouse)
     this.freeCameraYaw = 0; // Horizontal camera angle
-    this.freeCameraPitch = 0.5; // Vertical camera angle (radians, ~30° up)
-    this.freeCameraDistance = 8.2; // Camera distance from player
+    this.freeCameraPitch = CAMERA.freeLookPitch; // Vertical camera angle (radians, ~30° up)
+    this.freeCameraDistance = CAMERA.freeLookDistance; // Camera distance from player
   }
 
   // Set up the world, player, enemies, and UI
   async init() {
-    this.map = new TileMap(1, { width: 140, depth: 140 }, this.rng);
+    this.map = new TileMap(1, { width: WORLD.mapSize, depth: WORLD.mapSize }, this.rng);
 
     Setup.createLight(this.scene);
 
@@ -87,7 +87,7 @@ export class World {
 
   // Main game update loop (called every frame)
   update() {
-    const dt = Math.min(this.clock.getDelta(), 0.033);
+    const dt = Math.min(this.clock.getDelta(), WORLD.maxFrameTime);
     this.player.projectileInvulnTimer = Math.max(0, (this.player.projectileInvulnTimer || 0) - dt);
 
     if (this.gameOver) {
@@ -113,7 +113,7 @@ export class World {
     // Throttle snow and minimap updates
     this._frameCount = (this._frameCount || 0) + 1;
     updateSnow(this, dt);
-    if (this._frameCount % 4 === 0) {
+    if (this._frameCount % WORLD.minimapRedrawEveryFrames === 0) {
       updateMinimap(this);
     }
 

@@ -1,15 +1,16 @@
 // Camera follow and free-look orbit.
 
 import * as THREE from 'three';
+import { CAMERA } from './tuning.js';
 
 export function updateCamera(world, dt) {
-  const followOffset = new THREE.Vector3(0, 3.6, 8.2);
-  const desiredTarget = world.player.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+  const followOffset = new THREE.Vector3(CAMERA.followOffset.x, CAMERA.followOffset.y, CAMERA.followOffset.z);
+  const desiredTarget = world.player.position.clone().add(new THREE.Vector3(0, CAMERA.lookHeight, 0));
 
   // Free camera mode when left mouse button is held
   if (world.inputHandler.mouse.leftDown) {
     // Update camera angles based on mouse movement
-    const sensitivity = 0.003; // Mouse sensitivity
+    const sensitivity = CAMERA.mouseSensitivity;
     world.freeCameraYaw -= world.inputHandler.mouse.deltaX * sensitivity;
     world.freeCameraPitch -= world.inputHandler.mouse.deltaY * sensitivity;
 
@@ -17,7 +18,7 @@ export function updateCamera(world, dt) {
     world.freeCameraPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, world.freeCameraPitch));
 
     // Calculate camera position based on yaw/pitch around player
-    const camHeight = world.player.position.y + 3.6;
+    const camHeight = world.player.position.y + CAMERA.followOffset.y;
     const horizontalDist = world.freeCameraDistance * Math.cos(world.freeCameraPitch);
     const verticalDist = world.freeCameraDistance * Math.sin(world.freeCameraPitch);
 
@@ -37,13 +38,13 @@ export function updateCamera(world, dt) {
     world.cameraHeightSmooth = THREE.MathUtils.lerp(
       world.cameraHeightSmooth,
       desiredPosition.y,
-      1 - Math.exp(-dt * 4),
+      1 - Math.exp(-dt * CAMERA.smoothing.height),
     );
 
-    world.cameraFollowPos.lerp(desiredPosition, 1 - Math.exp(-dt * 12));
+    world.cameraFollowPos.lerp(desiredPosition, 1 - Math.exp(-dt * CAMERA.smoothing.freeLookFollow));
     world.cameraFollowPos.y = world.cameraHeightSmooth;
 
-    world.cameraLookPos.lerp(desiredTarget, 1 - Math.exp(-dt * 9));
+    world.cameraLookPos.lerp(desiredTarget, 1 - Math.exp(-dt * CAMERA.smoothing.look));
   } else {
     // Normal follow camera mode
     const desiredPosition = world.player.position.clone().add(followOffset);
@@ -63,13 +64,13 @@ export function updateCamera(world, dt) {
     world.cameraHeightSmooth = THREE.MathUtils.lerp(
       world.cameraHeightSmooth,
       desiredPosition.y,
-      1 - Math.exp(-dt * 4),
+      1 - Math.exp(-dt * CAMERA.smoothing.height),
     );
 
-    world.cameraFollowPos.lerp(desiredPosition, 1 - Math.exp(-dt * 7));
+    world.cameraFollowPos.lerp(desiredPosition, 1 - Math.exp(-dt * CAMERA.smoothing.follow));
     world.cameraFollowPos.y = world.cameraHeightSmooth;
 
-    world.cameraLookPos.lerp(desiredTarget, 1 - Math.exp(-dt * 9));
+    world.cameraLookPos.lerp(desiredTarget, 1 - Math.exp(-dt * CAMERA.smoothing.look));
   }
 
   world.camera.position.copy(world.cameraFollowPos);
