@@ -7,7 +7,7 @@ import { callLurkersToSignal } from './lurkers.js';
 import { PLAYER_STATE } from './states.js';
 
 export async function spawnTerminals(world) {
-  const terminalCount = THREE.MathUtils.randInt(3, 5);
+  const terminalCount = world.rng.nextInt(3, 6);
   const baseScene = await loadServerRackModel(world);
 
   for (let i = 0; i < terminalCount; i++) {
@@ -252,7 +252,7 @@ export async function spawnSecretCharacter(world) {
     position: pos.clone(),
   };
 
-  spawnShipNearSecret(world, pos);
+  await spawnShipNearSecret(world, pos);
 }
 
 export async function spawnShipNearSecret(world, secretPos) {
@@ -263,7 +263,7 @@ export async function spawnShipNearSecret(world, secretPos) {
     let shipPos = secretPos.clone().add(new THREE.Vector3(6, 0, 0));
     for (let i = 0; i < 14; i++) {
       const angle = world.rng.next() * Math.PI * 2;
-      const distance = THREE.MathUtils.randFloat(5.2, 9.0);
+      const distance = world.rng.nextFloat(5.2, 9.0);
       const candidate = secretPos.clone().add(new THREE.Vector3(
         Math.cos(angle) * distance,
         0,

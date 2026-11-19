@@ -150,7 +150,7 @@ export function spawnSingleLurkerFromTile(world, tile, astronautTemplate, forceP
     isAttacking: false,
     isPunching: false,
     chaseBoostTimer: forcePursue ? 3.2 : 0,
-    shootCooldown: THREE.MathUtils.randFloat(0.25, 1.1),
+    shootCooldown: world.rng.nextFloat(0.25, 1.1),
     alertTimer: 0,
     huntTimer: forcePursue ? 12 : 0,
     patrolTarget: world.map.getRandomWalkableTile(),
@@ -159,9 +159,9 @@ export function spawnSingleLurkerFromTile(world, tile, astronautTemplate, forceP
     path: [],
     pathIndex: 0,
     replanTimer: 0,
-    aiUpdateTimer: THREE.MathUtils.randFloat(0, 0.12),
-    detectionCheckTimer: THREE.MathUtils.randFloat(0, 0.1),
-    animationUpdateTimer: THREE.MathUtils.randFloat(0, 0.08),
+    aiUpdateTimer: world.rng.nextFloat(0, 0.12),
+    detectionCheckTimer: world.rng.nextFloat(0, 0.1),
+    animationUpdateTimer: world.rng.nextFloat(0, 0.08),
     lodProfile: null,
     alertSprite,
     cone,
@@ -335,7 +335,7 @@ export function updateLurkers(world, dt) {
         lurker.shootCooldown = Math.max(0, (lurker.shootCooldown || 0) - dt);
         if (canSee && distance <= 24 && !lurker.isPunching && lurker.shootCooldown <= 0) {
           fireLurkerProjectile(world, lurker);
-          lurker.shootCooldown = THREE.MathUtils.randFloat(0.6, 1.15);
+          lurker.shootCooldown = world.rng.nextFloat(0.6, 1.15);
         }
 
         if (!lurker.hasSightLine) {
@@ -417,7 +417,7 @@ export function updatePatrolMovement(world, lurker, dt) {
     topSpeed: 7.4,
     wanderAngle: lurker.wanderAngle,
   };
-  const wanderForce = SteeringBehaviours.wander(wanderEntity, 4, 1.8, 0.35);
+  const wanderForce = SteeringBehaviours.wander(wanderEntity, 4, 1.8, 0.35, world.rng);
   lurker.wanderAngle = wanderEntity.wanderAngle;
 
   lurker.acceleration.add(seekForce.multiplyScalar(0.7));

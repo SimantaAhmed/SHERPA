@@ -26,11 +26,11 @@ export function createDistantMountains(world) {
 
   for (let i = 0; i < peakCount; i++) {
     const angle = (i / peakCount) * Math.PI * 2;
-    const baseRadius = THREE.MathUtils.randFloat(18, 30);
-    const height = THREE.MathUtils.randFloat(22, 54);
+    const baseRadius = world.rng.nextFloat(18, 30);
+    const height = world.rng.nextFloat(22, 54);
 
-    const x = Math.cos(angle) * ringRadius + THREE.MathUtils.randFloatSpread(14);
-    const z = Math.sin(angle) * ringRadius + THREE.MathUtils.randFloatSpread(14);
+    const x = Math.cos(angle) * ringRadius + world.rng.nextFloat(-7, 7);
+    const z = Math.sin(angle) * ringRadius + world.rng.nextFloat(-7, 7);
 
     const mountain = new THREE.Mesh(
       createRockyMountainGeometry(world, baseRadius, height),
@@ -136,6 +136,8 @@ export function getSnowQualityProfile(world) {
   return { count: 480, radius: 36, height: 28, size: 0.14 };
 }
 
+// Snow is cosmetic and respawns every frame, so it uses Math.random and
+// leaves the seeded sequence alone.
 export function createSnowSystem(world) {
   const profile = getSnowQualityProfile(world);
   const positions = new Float32Array(profile.count * 3);
@@ -238,7 +240,7 @@ export async function spawnRuinStructures(world) {
     const center = world.map.localize(tile);
     const modelKey = modelKeys[Math.floor(world.rng.next() * modelKeys.length)];
     const modelScene = decorativeModels[modelKey];
-    const scale = THREE.MathUtils.randFloat(0.7, 1.5);
+    const scale = world.rng.nextFloat(0.7, 1.5);
 
     let ruin;
     if (modelScene) {
