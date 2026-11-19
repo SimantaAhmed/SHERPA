@@ -186,9 +186,11 @@ not covered by this repository's code licence.
 | [Server rack](https://poly.pizza/m/6ijQclm8jxw) | Data terminals | Jeremy Eyring | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
 | [Sherma](https://sketchfab.com/3d-models/sherma-hollow-knight-silksong-e1541d1c0b134b85a7da3b1bfa6cf0da) | Secret character | Lunorvyn | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
 
-The Sherma model is fan art of a character from *Hollow Knight: Silksong*,
-which belongs to Team Cherry. This project is non-commercial and not affiliated
-with or endorsed by them.
+The secret character is a small fan nod to *Hollow Knight: Silksong*: Sherma,
+who shows a line from his in-game song when you find him (audio was left out to
+keep gameplay smooth). The model is fan art, and the character and song belong
+to Team Cherry. This project is non-commercial and not affiliated with or
+endorsed by them.
 
 ### Code
 
@@ -208,7 +210,8 @@ says what I changed in the pack files.
 ## Code Layout
 
 I split the game out of `World.js` after the course ended; it had grown to
-about 2,600 lines in one file.
+about 2,600 lines in one file. The project was built locally during the course
+and added to git in one go after that refactor, so the history starts there.
 
 ```
 js/World.js         game state, init/update/render, wiring
@@ -266,7 +269,6 @@ The game itself: the loop, the player and lurker state machines, hacking, extrac
 
 - After hacking a terminal while in Drive Mode, the player returns to Mech Mode but the ship model stays underneath.
 - Random spawning can occasionally place the player inside geometry. Refreshing the browser resolves this; it is very rare.
-- The secret character is Sherma from *Hollow Knight: Silksong*. The text displayed is lyrics from his in-game song. Audio was omitted to keep gameplay smooth.
 - Camera orbit can occasionally drift; it is centred on the player rather than cursor-driven.
 - Lurkers take about a second to go from alert to pursuit. That delay is deliberate so they don't lock on the instant you enter a cone.
 
