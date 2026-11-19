@@ -75,9 +75,9 @@ above serves.
 |-----|--------|
 | `W A S D` | Move |
 | `T` | Toggle Mech Mode / Drive Mode |
-| `Shift` | Crouch (Mech) or cut engine (Drive), reduces detection radius |
+| `Shift` | Crouch (Mech) or cut engine (Drive). Slower, and lurkers spot you from 40% less distance |
 | `E` (hold) | Hack terminal while in range |
-| `Space` | Jump (Mech Mode only) |
+| `Space` | Jump. Jumping while moving leaps forward. Drive Mode jumps lower |
 | `Hold Left Mouse` | Free-look camera, drag to orbit around player |
 | `R` | Restart (on end screen) |
 | `Y` | Debug shortcut, instantly unlocks extraction point (saves time when testing) |
@@ -87,7 +87,7 @@ above serves.
 ## Objective
 
 1. Find all **data terminals** (server racks) on the map, 3 to 5 per run.
-2. Stand within range and hold `E` for **2.2 seconds** to complete a hack. Moving or releasing E cancels it.
+2. Stand within range and hold `E` for **2.2 seconds** to complete a hack. Releasing E or getting hit cancels it, and starting a hack calls nearby lurkers to the terminal.
 3. Once all terminals are hacked, a **blue extraction ring** appears at the map centre.
 4. Reach the extraction ring to finish the run.
 
@@ -112,14 +112,14 @@ Two parallel state machines:
 Implemented as a `switch` block in `updateLurkers` (`js/game/lurkers.js`).
 
 ### 3. Pathfinding: Jump Point Search
-**How to see it:** Enter pursuit range near a ruin. Lurkers navigate around it to reach you rather than walking into the wall.
+**How to see it:** Get chased over rough ground. Lurkers route around steep slopes and ruin footprints instead of steering straight at you. Once a ruin blocks their line of sight they give up and return.
 
 `TileMap.js` discretizes the heightmap into a 2D grid with nodes blocked for steep slopes and ruin footprints. `JPS.js` finds paths by pruning nodes that aren't directional jump points, using Manhattan distance as the heuristic. Each lurker replans every 0.35 seconds. Used in `updatePursueMovement`.
 
 ### 4. Procedural Content Generation: Perlin Noise
 **How to see it:** Press `R` to restart several times after dying. Terrain, ruins, blackout zones, terminal positions, and the secret character's spawn all land differently each run.
 
-`Perlin.js` implements gradient noise based on the in-class source code. Two key changes were made from the source: (1) the constructor now accepts an `rng` parameter so the LCG drives the gradient grid instead of `Math.random()`, enabling seed-reproducible terrain; (2) the `noise()` method uses `wrapValue`/`wrapIndex` helpers to handle negative coordinate wrapping correctly, which was necessary to support the larger map size without tiling artefacts. `TileMap.js` samples it to assign height per tile. A second independent noise pass marks **blackout zones**, where the minimap goes dark and lurker detection range doubles, shown as a fog overlay. Terminal candidates are filtered to open, non-blackout tiles.
+`Perlin.js` implements gradient noise based on the in-class source code. Two key changes were made from the source: (1) the constructor now accepts an `rng` parameter so the LCG drives the gradient grid instead of `Math.random()`, enabling seed-reproducible terrain; (2) the `noise()` method uses `wrapValue`/`wrapIndex` helpers to handle negative coordinate wrapping correctly, which was necessary to support the larger map size without tiling artefacts. `TileMap.js` samples it to assign height per tile. A second independent noise pass marks **blackout zones**, where the minimap shows MINIMAP SIGNAL LOST and lurker detection range doubles. Terminal candidates are filtered to open, non-blackout tiles.
 
 ### 5. Simple Movement: Pursue
 **How to see it:** Once a lurker enters pursuit, run perpendicular to it. It leads its steering toward your predicted position rather than trailing you directly.
@@ -130,23 +130,25 @@ Implemented as a `switch` block in `updateLurkers` (`js/game/lurkers.js`).
 
 ## Pseudorandom Number Generation (PRNG): Linear Congruential Generator
 
-All procedural generation, AI randomness, and world logic use a custom **Linear Congruential Generator (LCG)** implemented in `js/util/LCG.js` instead of `Math.random()`. The LCG is seeded at the start of each run using `Date.now()`.
+World generation and AI randomness use a custom **Linear Congruential Generator (LCG)** implemented in `js/util/LCG.js` instead of `Math.random()`. The LCG is seeded at the start of each run using `Date.now()`.
 
 **Algorithm** (Numerical Recipes constants):
 ```
 s_(n+1) = (1664525 * s_n + 1013904223) % 2^31
 ```
 
-The LCG is the single source of randomness for:
+The LCG drives:
 - Terrain generation (passed into `Perlin.js`, gradients built from `rng.next()` instead of `Math.random()`)
 - Blackout zone generation (second independent Perlin pass, same rng instance)
-- Entity spawning: ruins, terminals, lurkers, the secret character
-- AI wandering angle updates (`SteeringBehaviours.wander`)
-- Mountain vertex distortion (cosmetic jitter in `js/game/scenery.js`)
+- Entity spawning: ruins and their scale, the terminal count and positions, lurkers, the secret character and its ship
+- The distant mountains: placement, size and vertex jitter (`js/game/scenery.js`)
+- AI randomness: patrol targets, wander angles (`SteeringBehaviours.wander`), shot cooldowns
+
+The one exception is snow. It is cosmetic and respawns every frame, so it uses `Math.random()` and leaves the seeded sequence alone.
 
 This fulfills the course requirement for implementing a pseudorandom number generator beyond the built-in JavaScript random function.
 
-**How to see it:** Change `const seed = Date.now()` in `main.js` to a fixed number (e.g. `12345`). Every restart will generate the exact same world, terminal layout, and AI patrol paths.
+**How to see it:** Change `const seed = Date.now()` in `main.js` to a fixed number (e.g. `12345`). Every restart then generates the same terrain, ruins, terminals, lurker spawns and secret character. Lurker behaviour still varies between runs: the AI draws from the same sequence, but when it draws depends on frame timing and on what you do.
 
 ---
 
@@ -161,7 +163,7 @@ not covered by this repository's code licence.
 |---|---|---|---|
 | [Mech](https://poly.pizza/m/D5wW2jDO42) | Player (FOX) | Quaternius | CC0 1.0 |
 | [Spaceship](https://poly.pizza/m/uCeLfsdmNP) | Drive mode | Quaternius | CC0 1.0 |
-| [Ship](https://poly.pizza/m/mEQj2wZ3GC) | Drive mode | Quaternius | CC0 1.0 |
+| [Ship](https://poly.pizza/m/mEQj2wZ3GC) | Prop beside the secret character | Quaternius | CC0 1.0 |
 | [Astronaut](https://poly.pizza/m/OgeSH89Nmx) | Lurkers | Quaternius | CC0 1.0 |
 | [Tree Spiral](https://poly.pizza/m/poFJzEWCk8) | Scenery | Quaternius | CC0 1.0 |
 | [Rock](https://poly.pizza/m/IFU6cm2Xow), [Rock 2](https://poly.pizza/m/e1rgb5i2kF) | Scenery | Quaternius | CC0 1.0 |
@@ -182,10 +184,10 @@ MinHeap), the state machine base, the tile map and the Perlin implementation.
 Published with the instructor's permission.
 
 Mine: the game on top of it. The player and lurker state machines, detection
-and pursuit, hacking and extraction, the minimap and fog, blackout zones,
+and pursuit, hacking and extraction, the minimap, blackout zones,
 water tiles, the animations, the seeded LCG, and everything that makes a run
-reproducible from one seed. The file list further down says what I changed in
-the pack files.
+reproducible from one seed. [Changes from Starter / In-Class Source Code](#changes-from-starter--in-class-source-code)
+says what I changed in the pack files.
 
 ## Code Layout
 
@@ -236,11 +238,11 @@ Extended from starter code to: pass `this.rng` into both `Perlin` instances; add
 ### `maps/Tile.js`
 Added `Water` tile type and updated `isWalkable` and movement cost logic.
 
-### `World.js`
-Major additions: full game loop (player state machine, lurker state machine, hacking system, extraction logic, minimap, health, fog overlay). The two mountain-geometry `Math.random()` calls from the prototype were updated to `this.rng.next()` to keep all randomness seed-consistent.
+### `World.js` and `js/game/`
+The game itself: the loop, the player and lurker state machines, hacking, extraction, the HUD and minimap, and health. It started in `World.js` and now lives in `js/game/` (see [Code Layout](#code-layout)). The prototype's `Math.random()` calls were moved onto the seeded LCG.
 
 ### No modifications to core AI files
-`JPS.js`, `SteeringBehaviours.js`, `StateMachine.js`, and `State.js` were used as provided from source, with `SteeringBehaviours.wander` already accepting an optional `rng` parameter which is now supplied.
+`JPS.js`, `SteeringBehaviours.js` and `State.js` were used as provided from source. `SteeringBehaviours.wander` already accepted an optional `rng` parameter, and the lurkers now pass the LCG into it.
 
 ---
 
@@ -250,7 +252,7 @@ Major additions: full game loop (player state machine, lurker state machine, hac
 - Random spawning can occasionally place the player inside geometry. Refreshing the browser resolves this; it is very rare.
 - The secret character is Sherma from *Hollow Knight: Silksong*. The text displayed is lyrics from his in-game song. Audio was omitted to keep gameplay smooth.
 - Camera orbit can occasionally drift; it is centred on the player rather than cursor-driven.
-- Enemy detection can glitch at close range. Reaction time was intentionally increased to prevent lurkers from immediately locking onto the player.
+- Lurkers take about a second to go from alert to pursuit. That delay is deliberate so they don't lock on the instant you enter a cone.
 
 ---
 
