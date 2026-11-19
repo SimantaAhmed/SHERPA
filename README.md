@@ -109,6 +109,8 @@ above serves.
 
 **Optional:** Find the "hidden" figure somewhere on the map for healing. Its location is never marked on the minimap.
 
+**SHERPA is meant to be hard.** Starting a hack calls every lurker within about 43 units to you, health doesn't regenerate, and the only healing is hidden. Expect to die a lot and learn the map. Every value behind this lives in [`js/game/tuning.js`](js/game/tuning.js), so an easier mode is a one-line change.
+
 ---
 
 ## Game AI Techniques
