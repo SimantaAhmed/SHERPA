@@ -6,6 +6,7 @@ import { applyToonToObject, getToonMaterial } from './materials.js';
 import { spawnExtractionPoint } from './objectives.js';
 import { RoundEntity } from '../entities/RoundEntity.js';
 import { PLAYER_STATE } from './states.js';
+import { PLAYER } from './tuning.js';
 
 export function createPlayer(world) {
   const spawnTile = world.map.getRandomWalkableTile((tile) => !tile.blackout);
@@ -18,26 +19,25 @@ export function createPlayer(world) {
     facing: new THREE.Vector3(0, 0, 1),
     state: PLAYER_STATE.MECH,
     isCrouch: false,
-    health: 100,
-    maxHealth: 100,
+    health: PLAYER.maxHealth,
+    maxHealth: PLAYER.maxHealth,
     hackTarget: null,
     hackTimer: 0,
-    detectRadius: 16,
-    baseMechSpeed: 9.5,
-    baseDriveSpeed: 58.5,
+    baseMechSpeed: PLAYER.mech.topSpeed,
+    baseDriveSpeed: PLAYER.drive.topSpeed,
     mechVisualOffsetY: -0.55,
     modeTransitionActive: false,
     modeTransitionTimer: 0,
-    modeTransitionDuration: 0.48,
+    modeTransitionDuration: PLAYER.modeSwitchDuration,
     modeTransitionFrom: PLAYER_STATE.MECH,
     modeTransitionTo: PLAYER_STATE.MECH,
     modeTransitionSwapped: false,
-    modeJumpHeight: 1.35,
+    modeJumpHeight: PLAYER.modeSwitchHopHeight,
     modeJumpOffset: 0,
     jumpActive: false,
     jumpTimer: 0,
-    jumpDuration: 0.55,
-    jumpHeight: 2.4,
+    jumpDuration: PLAYER.mech.jumpDuration,
+    jumpHeight: PLAYER.mech.jumpHeight,
     jumpOffset: 0,
     vehicleLiftOffset: 0.38,
     hitReactionTimer: 0,
@@ -267,20 +267,16 @@ export function updatePlayerStateControls(world) {
     world.player.jumpTimer = 0;
     if (isMoving) {
       // Apply a forward boost for jump
-      const jumpBoost = world.player.facing.clone().normalize().multiplyScalar(7.5);
+      const jumpBoost = world.player.facing.clone().normalize().multiplyScalar(PLAYER.jumpForwardBoost);
       world.player.velocity.add(jumpBoost);
     }
     if (world.player.state === PLAYER_STATE.MECH && world.player.mechJumpAction) {
       world.player.mechJumpAction.reset();
       world.player.mechJumpAction.paused = false;
     }
-    if (world.player.state === PLAYER_STATE.DRIVE) {
-      world.player.jumpHeight = 1.2;
-      world.player.jumpDuration = 0.38;
-    } else {
-      world.player.jumpHeight = 2.4;
-      world.player.jumpDuration = 0.55;
-    }
+    const mode = world.player.state === PLAYER_STATE.DRIVE ? PLAYER.drive : PLAYER.mech;
+    world.player.jumpHeight = mode.jumpHeight;
+    world.player.jumpDuration = mode.jumpDuration;
   }
 
   world.player.isCrouch = world.inputHandler.keys.shift;
@@ -301,25 +297,20 @@ export function updatePlayerMovement(world, dt) {
     return;
   }
 
-  let maxSpeed = world.player.state === PLAYER_STATE.MECH ? world.player.baseMechSpeed : world.player.baseDriveSpeed;
-  let acceleration = world.player.state === PLAYER_STATE.MECH ? 34 : 46;
-  let drag = world.player.state === PLAYER_STATE.MECH ? 5.8 : 4.4;
+  const mode = world.player.state === PLAYER_STATE.MECH ? PLAYER.mech : PLAYER.drive;
+  let maxSpeed = mode.topSpeed;
+  let acceleration = mode.acceleration;
+  let drag = mode.drag;
 
   if (world.player.isCrouch) {
-    if (world.player.state === PLAYER_STATE.MECH) {
-      maxSpeed *= 0.55;
-      acceleration *= 0.8;
-    } else {
-      maxSpeed *= 0.42;
-      acceleration *= 0.4;
-    }
+    maxSpeed *= mode.crouchSpeedScale;
+    acceleration *= mode.crouchAccelerationScale;
   }
 
-  // If on water, reduce speed and acceleration
   if (tile.type && tile.type.description === 'Water') {
-    maxSpeed *= 0.38; // much slower on water
-    acceleration *= 0.45;
-    drag *= 1.5;
+    maxSpeed *= PLAYER.water.speedScale;
+    acceleration *= PLAYER.water.accelerationScale;
+    drag *= PLAYER.water.dragScale;
   }
 
   const inputForce = world.inputHandler.getForce(1);
