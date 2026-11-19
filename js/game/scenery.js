@@ -281,9 +281,9 @@ export async function spawnRuinStructures(world) {
 export async function loadDecorativeModels(world) {
   const models = {};
   const modelFiles = [
-    { key: 'Rock', file: 'Rocks.glb' },
-    { key: 'Tree', file: 'Dead Tree.glb' },
-    { key: 'SpiralTree', file: 'Tree Spiral.glb' },
+    { key: 'Rock', file: 'rock.glb' },
+    { key: 'Tree', file: 'dead-tree.glb' },
+    { key: 'SpiralTree', file: 'tree-spiral.glb' },
   ];
   const fallbackGeo = [
     () => new THREE.BoxGeometry(2.2, 3.0, 2.2),

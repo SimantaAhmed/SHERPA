@@ -15,7 +15,7 @@ export async function loadLurkerTemplate(world) {
   }
 
   try {
-    world.lurkerTemplate = await world.loader.loadAsync(asset('Astronaut.glb'));
+    world.lurkerTemplate = await world.loader.loadAsync(asset('astronaut.glb'));
   } catch (error) {
     world.lurkerTemplate = null;
   }

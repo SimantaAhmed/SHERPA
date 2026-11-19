@@ -182,7 +182,7 @@ not covered by this repository's code licence.
 | [Astronaut](https://poly.pizza/m/OgeSH89Nmx) | Lurkers | Quaternius | CC0 1.0 |
 | [Dead Tree](https://poly.pizza/m/Mcd2zYqyww) | Scenery | Quaternius | CC0 1.0 |
 | [Tree Spiral](https://poly.pizza/m/poFJzEWCk8) | Scenery | Quaternius | CC0 1.0 |
-| [Rock](https://poly.pizza/m/IFU6cm2Xow), [Rock 2](https://poly.pizza/m/e1rgb5i2kF) | Scenery | Quaternius | CC0 1.0 |
+| [Rock](https://poly.pizza/m/e1rgb5i2kF) | Scenery | Quaternius | CC0 1.0 |
 | [Server rack](https://poly.pizza/m/6ijQclm8jxw) | Data terminals | Jeremy Eyring | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
 | [Sherma](https://sketchfab.com/3d-models/sherma-hollow-knight-silksong-e1541d1c0b134b85a7da3b1bfa6cf0da) | Secret character | Lunorvyn | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
 

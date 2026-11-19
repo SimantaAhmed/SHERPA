@@ -50,7 +50,7 @@ export async function spawnTerminals(world) {
 
 export async function loadServerRackModel(world) {
   try {
-    const gltf = await world.loader.loadAsync(asset('server rack.glb'));
+    const gltf = await world.loader.loadAsync(asset('server-rack.glb'));
     return gltf.scene;
   } catch (error) {
     return null;
@@ -224,7 +224,7 @@ export async function spawnSecretCharacter(world) {
   let mesh;
   let secretModel = 'fallback';
   try {
-    const gltf = await world.loader.loadAsync(asset('sherma__-_hollow_knight_silksong.glb'));
+    const gltf = await world.loader.loadAsync(asset('sherma.glb'));
     mesh = gltf.scene;
     mesh.scale.setScalar(1.15);
     applyToonToObject(world, mesh);
@@ -257,7 +257,7 @@ export async function spawnSecretCharacter(world) {
 
 export async function spawnShipNearSecret(world, secretPos) {
   try {
-    const gltf = await world.loader.loadAsync(asset('Ship.glb'));
+    const gltf = await world.loader.loadAsync(asset('ship.glb'));
     const ship = gltf.scene;
 
     let shipPos = secretPos.clone().add(new THREE.Vector3(6, 0, 0));
@@ -286,7 +286,7 @@ export async function spawnShipNearSecret(world, secretPos) {
     const bbox = new THREE.Box3().setFromObject(ship);
     world.ruins.push({ mesh: ship, bbox });
   } catch (error) {
-    console.warn('Failed to load Ship.glb:', error);
+    console.warn('Failed to load ship.glb:', error);
   }
 }
 

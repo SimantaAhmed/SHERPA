@@ -62,7 +62,7 @@ export function createPlayer(world) {
 }
 
 export function loadMechVisual(world) {
-  const modelPaths = [asset('Mech (1).glb'), asset('Mech%20(1).glb')];
+  const modelPaths = [asset('mech.glb')];
 
   const tryLoad = (index) => {
     if (index >= modelPaths.length) {
@@ -170,7 +170,7 @@ export function loadMechVisual(world) {
 
 export function loadSpaceshipVisual(world) {
   world.loader.load(
-    asset('Spaceship.glb'),
+    asset('spaceship.glb'),
     (gltf) => {
       const ship = gltf.scene;
       ship.scale.set(0.85, 0.85, 0.85);
