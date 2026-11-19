@@ -285,6 +285,9 @@ export function updatePlayerStateControls(world) {
     if (world.player.state === PLAYER_STATE.DRIVE) {
       world.player.jumpHeight = 1.2;
       world.player.jumpDuration = 0.38;
+    } else {
+      world.player.jumpHeight = 2.4;
+      world.player.jumpDuration = 0.55;
     }
   }
 
