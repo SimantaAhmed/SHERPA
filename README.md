@@ -134,7 +134,7 @@ Implemented as a `switch` block in `updateLurkers` (`js/game/lurkers.js`).
 ### 4. Procedural Content Generation: Perlin Noise
 **How to see it:** Press `R` to restart several times after dying. Terrain, ruins, blackout zones, terminal positions, and the secret character's spawn all land differently each run.
 
-`Perlin.js` implements gradient noise based on the in-class source code. Two key changes were made from the source: (1) the constructor now accepts an `rng` parameter so the LCG drives the gradient grid instead of `Math.random()`, enabling seed-reproducible terrain; (2) the `noise()` method uses `wrapValue`/`wrapIndex` helpers to handle negative coordinate wrapping correctly, which was necessary to support the larger map size without tiling artefacts. `TileMap.js` samples it to assign height per tile. A second independent noise pass marks **blackout zones**, where the minimap shows MINIMAP SIGNAL LOST and lurker detection range doubles. Terminal candidates are filtered to open, non-blackout tiles.
+`Perlin.js` implements gradient noise based on the in-class source code. Two key changes were made from the source: (1) the constructor now accepts an `rng` parameter so the LCG drives the gradient grid instead of `Math.random()`, enabling seed-reproducible terrain; (2) the `noise()` method uses `wrapValue`/`wrapIndex` helpers to handle negative coordinate wrapping correctly, which was necessary to support the larger map size without tiling artefacts. `TileMap.js` samples it to assign height per tile. A second independent noise pass marks **blackout zones**, where the minimap shows MINIMAP SIGNAL LOST, the fog thickens and darkens, and lurker detection range doubles. Terminal candidates are filtered to open, non-blackout tiles.
 
 ### 5. Simple Movement: Pursue
 **How to see it:** Once a lurker enters pursuit, run perpendicular to it. It leads its steering toward your predicted position rather than trailing you directly.
@@ -202,7 +202,7 @@ MinHeap), the state machine base, the tile map and the Perlin implementation.
 Published with the instructor's permission.
 
 Mine: the game on top of it. The player and lurker state machines, detection
-and pursuit, hacking and extraction, the minimap, blackout zones,
+and pursuit, hacking and extraction, the minimap and fog, blackout zones,
 water tiles, the animations, the seeded LCG, and everything that makes a run
 reproducible from one seed. [Changes from Starter / In-Class Source Code](#changes-from-starter--in-class-source-code)
 says what I changed in the pack files.

@@ -79,7 +79,7 @@ export class World {
     await spawnSecretCharacter(this);
     spawnExtractionPoint(this);
     createHud(this);
-    // createGroundFog(this);
+    createGroundFog(this);
     createSnowSystem(this);
 
     window.addEventListener('resize', () => this.handleResize());
@@ -121,7 +121,7 @@ export class World {
     updateSecretCharacter(this, dt);
     updateExtractionPoint(this, dt);
     updateCamera(this, dt);
-    // updateFog(this, dt);
+    updateFog(this, dt);
     updateHud(this, dt);
 
     this.inputHandler.endFrame();
