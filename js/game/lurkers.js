@@ -159,10 +159,7 @@ export function spawnSingleLurkerFromTile(world, tile, astronautTemplate, forceP
     path: [],
     pathIndex: 0,
     replanTimer: 0,
-    aiUpdateTimer: world.rng.nextFloat(0, 0.12),
     detectionCheckTimer: world.rng.nextFloat(0, 0.1),
-    animationUpdateTimer: world.rng.nextFloat(0, 0.08),
-    lodProfile: null,
     alertSprite,
     cone,
     homePosition: pos.clone(),
@@ -170,28 +167,6 @@ export function spawnSingleLurkerFromTile(world, tile, astronautTemplate, forceP
     walkAction,
     bbox: new THREE.Box3().setFromObject(mesh),
   });
-}
-
-export async function spawnReinforcementLurkers(world, count = 2, rushPlayer = true) {
-  const astronautTemplate = await loadLurkerTemplate(world);
-
-  for (let i = 0; i < count; i++) {
-    const tile = world.map.getRandomWalkableTile((candidate) => {
-      const local = world.map.localize(candidate);
-      return local.distanceTo(world.player.position) <= 26;
-    }) || world.map.getRandomWalkableTile();
-
-    if (!tile) {
-      continue;
-    }
-
-    spawnSingleLurkerFromTile(world, tile, astronautTemplate, rushPlayer);
-  }
-
-  if (rushPlayer) {
-    activateSwarmPursuit(world, world.player.position, 12);
-    callNearbyBackupLurkers(world, world.player.position, 2);
-  }
 }
 
 export function createDetectionCone(world) {
@@ -232,9 +207,8 @@ export function createAlertSprite(world) {
   return sprite;
 }
 
-export function getLurkerLodProfile(world, distance) {
-  return { name: 'near', aiInterval: 0.09, detectionInterval: 0.09, animationInterval: 0.09, obstacleAvoidance: true };
-}
+// How often a lurker re-checks whether it can see the player, in seconds.
+const DETECTION_INTERVAL = 0.09;
 
 export function callLurkersToSignal(world, signalPos, boost = 1) {
   for (const lurker of world.lurkers) {
@@ -253,8 +227,6 @@ export function updateLurkers(world, dt) {
   for (const lurker of world.lurkers) {
     const toPlayer = world.player.position.clone().sub(lurker.position);
     const distance = toPlayer.length();
-    const lodProfile = getLurkerLodProfile(world, distance);
-    lurker.lodProfile = lodProfile;
     const playerTile = world.map.quantize(world.player.position);
 
     const inBlackout = playerTile ? world.map.isBlackoutTile(playerTile) : false;
@@ -263,7 +235,7 @@ export function updateLurkers(world, dt) {
     lurker.detectionCheckTimer = Math.max(0, (lurker.detectionCheckTimer || 0) - dt);
 
     if (lurker.state === LURKER_STATE.PURSUE || lurker.detectionCheckTimer <= 0) {
-      lurker.detectionCheckTimer = lodProfile.detectionInterval;
+      lurker.detectionCheckTimer = DETECTION_INTERVAL;
 
       // Use the way the mesh faces so detection matches the visible cone,
       // even after the lurker stops moving.
@@ -289,12 +261,6 @@ export function updateLurkers(world, dt) {
     const distance = toPlayer.length();
     lurker.isAttacking = distance <= 1.8;
     lurker.isPunching = distance <= 1.25;
-    const lodProfile = lurker.lodProfile || getLurkerLodProfile(world, distance);
-    lurker.aiUpdateTimer = Math.max(0, (lurker.aiUpdateTimer || 0) - dt);
-    const runFullAi = lurker.state === LURKER_STATE.PURSUE || lodProfile.name === 'near' || lurker.aiUpdateTimer <= 0;
-    if (runFullAi) {
-      lurker.aiUpdateTimer = lodProfile.aiInterval;
-    }
     const playerTile = world.map.quantize(world.player.position);
     const lurkerTile = world.map.quantize(lurker.position);
     const canSee = !!lurker.canSeePlayer;
@@ -305,7 +271,7 @@ export function updateLurkers(world, dt) {
           lurker.state = LURKER_STATE.ALERT;
           lurker.alertTimer = 0.95;
           lurker.alertSprite.visible = true;
-        } else if (runFullAi) {
+        } else {
           updatePatrolMovement(world, lurker, dt);
           lurker.alertSprite.visible = false;
         }
@@ -331,9 +297,7 @@ export function updateLurkers(world, dt) {
 
       case LURKER_STATE.PURSUE:
         lurker.huntTimer -= dt;
-        if (runFullAi) {
-          updatePursueMovement(world, lurker, dt, lurkerTile, playerTile);
-        }
+        updatePursueMovement(world, lurker, dt, lurkerTile, playerTile);
 
         lurker.shootCooldown = Math.max(0, (lurker.shootCooldown || 0) - dt);
         if (canSee && distance <= 24 && !lurker.isPunching && lurker.shootCooldown <= 0) {
@@ -356,16 +320,12 @@ export function updateLurkers(world, dt) {
 
       case LURKER_STATE.RETURN:
         lurker.alertSprite.visible = false;
-        if (runFullAi) {
-          updateReturnMovement(world, lurker, dt);
-        }
+        updateReturnMovement(world, lurker, dt);
         break;
     }
 
     applyLurkerSeparation(world, lurker, dt);
-    if (lodProfile.obstacleAvoidance || lurker.state === LURKER_STATE.PURSUE) {
-      applyLurkerObstacleAvoidance(world, lurker);
-    }
+    applyLurkerObstacleAvoidance(world, lurker);
     integrateLurker(world, lurker, dt);
 
     if (lurker.isAttacking) {
@@ -547,15 +507,6 @@ export function applyTerminalInfluence(world, lurker, prioritizeHackTerminal = f
   }, closestTerminal.position);
 
   lurker.acceleration.add(fleeForce.multiplyScalar(0.35));
-}
-
-export function broadcastHunt(world, position, duration) {
-  for (const unit of world.lurkers) {
-    if (unit.position.distanceTo(position) <= 20) {
-      unit.state = LURKER_STATE.PURSUE;
-      unit.huntTimer = Math.max(unit.huntTimer, duration);
-    }
-  }
 }
 
 export function activateSwarmPursuit(world, position, duration) {
@@ -746,18 +697,6 @@ export function integrateLurker(world, lurker, dt) {
   }
 
   if (lurker.mixer && lurker.walkAction) {
-    const lodProfile = lurker.lodProfile || { animationInterval: 0, name: 'near' };
-    lurker.animationUpdateTimer = Math.max(0, (lurker.animationUpdateTimer || 0) - dt);
-    const shouldUpdateAnimation = lurker.state === LURKER_STATE.PURSUE || lodProfile.name === 'near' || lurker.animationUpdateTimer <= 0;
-
-    if (!shouldUpdateAnimation) {
-      lurker.cone.visible = lurker.state !== LURKER_STATE.PURSUE;
-      lurker.bbox.setFromObject(lurker.mesh);
-      lurker.acceleration.set(0, 0, 0);
-      return;
-    }
-
-    lurker.animationUpdateTimer = lodProfile.animationInterval;
     const shouldRun = lurker.state === LURKER_STATE.PURSUE || !!lurker.canSeePlayer;
     const shouldShootRun = shouldRun && !!lurker.canSeePlayer;
     const shouldPunch = !!lurker.isPunching;
