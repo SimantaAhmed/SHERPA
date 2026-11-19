@@ -165,6 +165,7 @@ not covered by this repository's code licence.
 | [Spaceship](https://poly.pizza/m/uCeLfsdmNP) | Drive mode | Quaternius | CC0 1.0 |
 | [Ship](https://poly.pizza/m/mEQj2wZ3GC) | Prop beside the secret character | Quaternius | CC0 1.0 |
 | [Astronaut](https://poly.pizza/m/OgeSH89Nmx) | Lurkers | Quaternius | CC0 1.0 |
+| [Dead Tree](https://poly.pizza/m/Mcd2zYqyww) | Scenery | Quaternius | CC0 1.0 |
 | [Tree Spiral](https://poly.pizza/m/poFJzEWCk8) | Scenery | Quaternius | CC0 1.0 |
 | [Rock](https://poly.pizza/m/IFU6cm2Xow), [Rock 2](https://poly.pizza/m/e1rgb5i2kF) | Scenery | Quaternius | CC0 1.0 |
 | [Server rack](https://poly.pizza/m/6ijQclm8jxw) | Data terminals | Jeremy Eyring | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
@@ -248,7 +249,7 @@ The game itself: the loop, the player and lurker state machines, hacking, extrac
 
 ## Known Bugs
 
-- After hacking a terminal while in Drive Mode, the player returns to Mech Mode while the ship model remains underneath. Intentionally kept because it looks cool and hints to press T to dash away.
+- After hacking a terminal while in Drive Mode, the player returns to Mech Mode but the ship model stays underneath.
 - Random spawning can occasionally place the player inside geometry. Refreshing the browser resolves this; it is very rare.
 - The secret character is Sherma from *Hollow Knight: Silksong*. The text displayed is lyrics from his in-game song. Audio was omitted to keep gameplay smooth.
 - Camera orbit can occasionally drift; it is centred on the player rather than cursor-driven.
