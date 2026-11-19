@@ -5,9 +5,10 @@ import { asset } from '../util/assets.js';
 import { applyToonToObject, getToonMaterial } from './materials.js';
 import { callLurkersToSignal } from './lurkers.js';
 import { PLAYER_STATE } from './states.js';
+import { HACKING, OBJECTIVES } from './tuning.js';
 
 export async function spawnTerminals(world) {
-  const terminalCount = world.rng.nextInt(3, 6);
+  const terminalCount = world.rng.nextInt(HACKING.minTerminals, HACKING.maxTerminals + 1);
   const baseScene = await loadServerRackModel(world);
 
   for (let i = 0; i < terminalCount; i++) {
@@ -76,7 +77,7 @@ export function updateTerminals(world, dt) {
       if (terminal.hacked || terminal.integrity <= 0) {
         return false;
       }
-      return terminal.position.distanceTo(world.player.position) <= 3.2;
+      return terminal.position.distanceTo(world.player.position) <= HACKING.range;
     });
 
     if (candidate) {
@@ -85,13 +86,13 @@ export function updateTerminals(world, dt) {
       world.player.hackTimer = world.hackDuration;
       world.player.velocity.set(0, 0, 0);
 
-      callLurkersToSignal(world, candidate.position, 1.45);
+      callLurkersToSignal(world, candidate.position, HACKING.alertRadius);
     }
   }
 
   if (world.player.state === PLAYER_STATE.HACKING && world.player.hackTarget) {
     const target = world.player.hackTarget;
-    const stillInRange = target.position.distanceTo(world.player.position) <= 3.2;
+    const stillInRange = target.position.distanceTo(world.player.position) <= HACKING.range;
 
     if (!isHoldingHack || !stillInRange || target.hacked || target.integrity <= 0) {
       target.hackedProgress = 0;
@@ -107,7 +108,7 @@ export function updateTerminals(world, dt) {
     if (world.player.hackTimer <= 0) {
       target.hacked = true;
       target.integrity = Math.max(target.integrity, 1);
-      world.score += Math.round(150 * target.integrity / 100);
+      world.score += Math.round(HACKING.scorePerTerminal * target.integrity / 100);
 
       world.player.hackTarget = null;
       world.player.state = world.player.state === PLAYER_STATE.DRIVE ? PLAYER_STATE.DRIVE : PLAYER_STATE.MECH;
@@ -183,7 +184,7 @@ export function updateExtractionPoint(world, dt) {
     world.extractionPoint.ring.position.set(world.extractionPoint.position.x, ringY, world.extractionPoint.position.z);
 
     const distance = world.player.position.distanceTo(world.extractionPoint.position);
-    if (distance <= 6.0 && !world.runFinished) {
+    if (distance <= OBJECTIVES.extractionRadius && !world.runFinished) {
       world.runFinished = true;
       world.endScreenType = 'clear';
       world.gameOver = true;
@@ -298,14 +299,12 @@ export function updateSecretCharacter(world, dt) {
   world.secretCharacter.mesh.scale.setScalar(pulse);
 
   const d = world.secretCharacter.mesh.position.distanceTo(world.player.entity.mesh.position);
-  const healRadius = 10.5;
-  if (d <= healRadius) {
-    // Heal gradually while in radius
-    const healRate = world.player.maxHealth * 0.18 * dt; // 18% per second
+  if (d <= OBJECTIVES.secretHealRadius) {
+    const healRate = world.player.maxHealth * OBJECTIVES.secretHealPerSecond * dt;
     world.player.health = Math.min(world.player.maxHealth, world.player.health + healRate);
     world.hud.speech.textContent = world.secretCharacter.model === 'sherma'
       ? 'fa-ri-doo-la-see-ma-net do-ni-pwa-nah-vo-li-net pi-nah-so-mi-ma-ni-set da-na-fo-su-lo-bon!(Yes, Silksong reference.)'
-      : 'Resting near the secret character.'; // Custom message for non-Sherma character but forgot to remove it noticed very late in development, oops
+      : 'Resting near the secret character.'; // Used if the Sherma model fails to load
     world.hud.speech.style.display = 'block';
     world.speechBubbleTimer = 1.0;
   }

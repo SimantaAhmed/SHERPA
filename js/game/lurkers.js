@@ -8,6 +8,7 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { JPS } from '../ai/pathfinding/JPS.js';
 import { SteeringBehaviours } from '../ai/steering/SteeringBehaviours.js';
 import { PLAYER_STATE, LURKER_STATE } from './states.js';
+import { HACKING, LURKER, PLAYER } from './tuning.js';
 
 export async function loadLurkerTemplate(world) {
   if (world.lurkerTemplate !== undefined) {
@@ -24,10 +25,9 @@ export async function loadLurkerTemplate(world) {
 }
 
 export async function spawnLurkers(world) {
-  const lurkerCount = 9;
   const astronautTemplate = await loadLurkerTemplate(world);
 
-  for (let i = 0; i < lurkerCount; i++) {
+  for (let i = 0; i < LURKER.count; i++) {
     const tile = world.map.getRandomWalkableTile();
     if (!tile) {
       continue;
@@ -46,7 +46,7 @@ export async function spawnLurkers(world) {
   );
 }
 
-export function spawnSingleLurkerFromTile(world, tile, astronautTemplate, forcePursue = false) {
+export function spawnSingleLurkerFromTile(world, tile, astronautTemplate) {
   const pos = world.map.localize(tile);
 
   const mesh = new THREE.Group();
@@ -141,25 +141,25 @@ export function spawnSingleLurkerFromTile(world, tile, astronautTemplate, forceP
     position: pos.clone(),
     velocity: new THREE.Vector3(),
     acceleration: new THREE.Vector3(),
-    topSpeed: 8.5,
-    maxForce: 13,
-    state: forcePursue ? LURKER_STATE.PURSUE : LURKER_STATE.PATROL,
+    topSpeed: LURKER.baseTopSpeed,
+    maxForce: LURKER.maxForce,
+    state: LURKER_STATE.PATROL,
     runAction,
     shootAction,
     punchAction,
     isAttacking: false,
     isPunching: false,
-    chaseBoostTimer: forcePursue ? 3.2 : 0,
-    shootCooldown: world.rng.nextFloat(0.25, 1.1),
+    chaseBoostTimer: 0,
+    shootCooldown: world.rng.nextFloat(LURKER.firstShotDelayMin, LURKER.firstShotDelayMax),
     alertTimer: 0,
-    huntTimer: forcePursue ? 12 : 0,
+    huntTimer: 0,
     patrolTarget: world.map.getRandomWalkableTile(),
-    detectionRange: 18,
-    detectionAngle: Math.PI * 0.36,
+    detectionRange: LURKER.detectionRange,
+    detectionAngle: LURKER.detectionAngle,
     path: [],
     pathIndex: 0,
     replanTimer: 0,
-    detectionCheckTimer: world.rng.nextFloat(0, 0.1),
+    detectionCheckTimer: world.rng.nextFloat(0, LURKER.firstDetectionStagger),
     alertSprite,
     cone,
     homePosition: pos.clone(),
@@ -207,15 +207,12 @@ export function createAlertSprite(world) {
   return sprite;
 }
 
-// How often a lurker re-checks whether it can see the player, in seconds.
-const DETECTION_INTERVAL = 0.09;
-
-export function callLurkersToSignal(world, signalPos, boost = 1) {
+export function callLurkersToSignal(world, signalPos, radius) {
   for (const lurker of world.lurkers) {
     const d = lurker.position.distanceTo(signalPos);
-    if (d < 30 * boost) {
+    if (d < radius) {
       lurker.state = LURKER_STATE.PURSUE;
-      lurker.huntTimer = Math.max(lurker.huntTimer, 6);
+      lurker.huntTimer = Math.max(lurker.huntTimer, HACKING.alertHuntDuration);
     }
   }
 }
@@ -230,12 +227,12 @@ export function updateLurkers(world, dt) {
     const playerTile = world.map.quantize(world.player.position);
 
     const inBlackout = playerTile ? world.map.isBlackoutTile(playerTile) : false;
-    const crouchScale = world.player.isCrouch ? 0.6 : 1;
-    const detectionRange = lurker.detectionRange * (inBlackout ? 2 : 1) * crouchScale;
+    const crouchScale = world.player.isCrouch ? LURKER.crouchSightScale : 1;
+    const detectionRange = lurker.detectionRange * (inBlackout ? LURKER.blackoutSightScale : 1) * crouchScale;
     lurker.detectionCheckTimer = Math.max(0, (lurker.detectionCheckTimer || 0) - dt);
 
     if (lurker.state === LURKER_STATE.PURSUE || lurker.detectionCheckTimer <= 0) {
-      lurker.detectionCheckTimer = DETECTION_INTERVAL;
+      lurker.detectionCheckTimer = LURKER.detectionInterval;
 
       // Use the way the mesh faces so detection matches the visible cone,
       // even after the lurker stops moving.
@@ -259,8 +256,8 @@ export function updateLurkers(world, dt) {
   for (const lurker of world.lurkers) {
     const toPlayer = world.player.position.clone().sub(lurker.position);
     const distance = toPlayer.length();
-    lurker.isAttacking = distance <= 1.8;
-    lurker.isPunching = distance <= 1.25;
+    lurker.isAttacking = distance <= LURKER.meleeRange;
+    lurker.isPunching = distance <= LURKER.punchRange;
     const playerTile = world.map.quantize(world.player.position);
     const lurkerTile = world.map.quantize(lurker.position);
     const canSee = !!lurker.canSeePlayer;
@@ -269,7 +266,7 @@ export function updateLurkers(world, dt) {
       case LURKER_STATE.PATROL:
         if (canSee) {
           lurker.state = LURKER_STATE.ALERT;
-          lurker.alertTimer = 0.95;
+          lurker.alertTimer = LURKER.alertDelay;
           lurker.alertSprite.visible = true;
         } else {
           updatePatrolMovement(world, lurker, dt);
@@ -280,7 +277,7 @@ export function updateLurkers(world, dt) {
       case LURKER_STATE.ALERT:
         lurker.alertSprite.visible = true;
         lurker.alertTimer -= dt;
-        lurker.velocity.multiplyScalar(0.88);
+        lurker.velocity.multiplyScalar(LURKER.alertSlowdown);
 
         if (!canSee) {
           lurker.state = LURKER_STATE.PATROL;
@@ -288,7 +285,7 @@ export function updateLurkers(world, dt) {
           lurker.alertSprite.visible = false;
         } else if (lurker.alertTimer <= 0) {
           lurker.state = LURKER_STATE.PURSUE;
-          lurker.huntTimer = Math.max(lurker.huntTimer, 10);
+          lurker.huntTimer = Math.max(lurker.huntTimer, LURKER.huntDuration);
           lurker.alertSprite.visible = false;
           pursuitTriggeredThisFrame = true;
           pursuitTriggerPosition = pursuitTriggerPosition || lurker.position.clone();
@@ -300,9 +297,9 @@ export function updateLurkers(world, dt) {
         updatePursueMovement(world, lurker, dt, lurkerTile, playerTile);
 
         lurker.shootCooldown = Math.max(0, (lurker.shootCooldown || 0) - dt);
-        if (canSee && distance <= 24 && !lurker.isPunching && lurker.shootCooldown <= 0) {
+        if (canSee && distance <= LURKER.shootRange && !lurker.isPunching && lurker.shootCooldown <= 0) {
           fireLurkerProjectile(world, lurker);
-          lurker.shootCooldown = world.rng.nextFloat(0.6, 1.15);
+          lurker.shootCooldown = world.rng.nextFloat(LURKER.shotCooldownMin, LURKER.shotCooldownMax);
         }
 
         if (!lurker.hasSightLine) {
@@ -329,7 +326,7 @@ export function updateLurkers(world, dt) {
     integrateLurker(world, lurker, dt);
 
     if (lurker.isAttacking) {
-      world.player.health = Math.max(0, world.player.health - (14 * dt));
+      world.player.health = Math.max(0, world.player.health - (LURKER.meleeDamagePerSecond * dt));
       triggerPlayerHitReaction(world, 0.12);
 
       if (world.player.health <= 0) {
@@ -338,10 +335,10 @@ export function updateLurkers(world, dt) {
       }
 
       if (world.player.hackTarget) {
-        world.player.hackTarget.integrity = Math.max(0, world.player.hackTarget.integrity - (8 * dt));
+        world.player.hackTarget.integrity = Math.max(0, world.player.hackTarget.integrity - (LURKER.terminalDrainPerSecond * dt));
 
         if (world.player.state === PLAYER_STATE.HACKING) {
-          world.score += Math.floor(world.player.hackTarget.hackedProgress * 45);
+          world.score += Math.floor(world.player.hackTarget.hackedProgress * HACKING.scorePerInterruptedHack);
           world.player.hackTarget = null;
           world.player.state = PLAYER_STATE.MECH;
         }
@@ -350,9 +347,9 @@ export function updateLurkers(world, dt) {
   }
 
   if (pursuitTriggeredThisFrame && world.swarmCooldown <= 0) {
-    activateSwarmPursuit(world, pursuitTriggerPosition || world.player.position, 10);
-    callNearbyBackupLurkers(world, pursuitTriggerPosition || world.player.position, 2);
-    world.swarmCooldown = 0.75;
+    activateSwarmPursuit(world, pursuitTriggerPosition || world.player.position, LURKER.swarm.duration);
+    callNearbyBackupLurkers(world, pursuitTriggerPosition || world.player.position, LURKER.backup.count);
+    world.swarmCooldown = LURKER.swarm.cooldown;
   }
 }
 
@@ -363,7 +360,7 @@ export function updatePatrolMovement(world, lurker, dt) {
 
   const targetPos = lurker.patrolTarget ? world.map.localize(lurker.patrolTarget) : lurker.homePosition;
 
-  if (lurker.position.distanceTo(targetPos) < 1.8) {
+  if (lurker.position.distanceTo(targetPos) < LURKER.patrol.reachDistance) {
     lurker.patrolTarget = world.map.getRandomWalkableTile();
     return;
   }
@@ -371,20 +368,26 @@ export function updatePatrolMovement(world, lurker, dt) {
   const seekForce = SteeringBehaviours.seek({
     position: lurker.position,
     velocity: lurker.velocity,
-    topSpeed: 7.4,
+    topSpeed: LURKER.patrolSpeed,
   }, targetPos);
 
   const wanderEntity = {
     position: lurker.position,
     velocity: lurker.velocity,
-    topSpeed: 7.4,
+    topSpeed: LURKER.patrolSpeed,
     wanderAngle: lurker.wanderAngle,
   };
-  const wanderForce = SteeringBehaviours.wander(wanderEntity, 4, 1.8, 0.35, world.rng);
+  const wanderForce = SteeringBehaviours.wander(
+    wanderEntity,
+    LURKER.patrol.wanderDistance,
+    LURKER.patrol.wanderRadius,
+    LURKER.patrol.wanderJitter,
+    world.rng,
+  );
   lurker.wanderAngle = wanderEntity.wanderAngle;
 
-  lurker.acceleration.add(seekForce.multiplyScalar(0.7));
-  lurker.acceleration.add(wanderForce.multiplyScalar(0.3));
+  lurker.acceleration.add(seekForce.multiplyScalar(LURKER.patrol.seekWeight));
+  lurker.acceleration.add(wanderForce.multiplyScalar(LURKER.patrol.wanderWeight));
   applyTerminalInfluence(world, lurker);
 }
 
@@ -396,19 +399,19 @@ export function updatePursueMovement(world, lurker, dt, lurkerTile, playerTile) 
   lurker.replanTimer -= dt;
 
   if (lurker.replanTimer <= 0) {
-    lurker.replanTimer = world.pathReplanInterval;
+    lurker.replanTimer = LURKER.pursuit.replanInterval;
     lurker.path = world.jps.findPath(lurkerTile, playerTile);
     lurker.pathIndex = 0;
   }
 
-  let pursueTarget = world.player.position.clone().addScaledVector(world.player.velocity, 0.4);
+  let pursueTarget = world.player.position.clone().addScaledVector(world.player.velocity, LURKER.pursuit.leadTime);
 
   if (lurker.path && lurker.path.length > 1) {
     lurker.pathIndex = Math.min(lurker.pathIndex, lurker.path.length - 1);
     const nextTile = lurker.path[lurker.pathIndex];
     const nextPos = world.map.localize(nextTile);
 
-    if (lurker.position.distanceTo(nextPos) < 1.2 && lurker.pathIndex < lurker.path.length - 1) {
+    if (lurker.position.distanceTo(nextPos) < LURKER.pursuit.waypointReachDistance && lurker.pathIndex < lurker.path.length - 1) {
       lurker.pathIndex += 1;
     }
 
@@ -418,11 +421,11 @@ export function updatePursueMovement(world, lurker, dt, lurkerTile, playerTile) 
   const pursueForce = SteeringBehaviours.pursue({
     position: lurker.position,
     velocity: lurker.velocity,
-    topSpeed: 10.5,
+    topSpeed: LURKER.chaseSpeed,
   }, {
     position: pursueTarget,
     velocity: world.player.velocity,
-  }, 0.25);
+  }, LURKER.pursuit.lookAhead);
 
   lurker.acceleration.add(pursueForce);
   applyTerminalInfluence(world, lurker, true);
@@ -430,26 +433,25 @@ export function updatePursueMovement(world, lurker, dt, lurkerTile, playerTile) 
 
 export function calculateSwarmSpeedBoost(world, lurker) {
   let swarmCount = 0;
-  const swarmDetectionRadius = 12;
 
   for (const other of world.lurkers) {
     if (other === lurker) continue;
     if (other.state !== LURKER_STATE.PURSUE) continue;
 
     const distance = lurker.position.distanceTo(other.position);
-    if (distance > 0 && distance < swarmDetectionRadius) {
+    if (distance > 0 && distance < LURKER.swarm.neighbourRadius) {
       swarmCount += 1;
     }
   }
 
   lurker.swarmCount = swarmCount;
-  return 1 + (swarmCount * 0.28);
+  return 1 + (swarmCount * LURKER.swarm.boostPerNeighbour);
 }
 
 export function updateReturnMovement(world, lurker, dt) {
   const target = lurker.homePosition;
 
-  if (lurker.position.distanceTo(target) < 1.5) {
+  if (lurker.position.distanceTo(target) < LURKER.homeReachDistance) {
     lurker.state = LURKER_STATE.PATROL;
     lurker.patrolTarget = world.map.getRandomWalkableTile();
     return;
@@ -458,11 +460,11 @@ export function updateReturnMovement(world, lurker, dt) {
   const steer = SteeringBehaviours.arrive({
     position: lurker.position,
     velocity: lurker.velocity,
-    topSpeed: 7.8,
+    topSpeed: LURKER.returnSpeed,
     maxForce: lurker.maxForce,
-  }, target, 10, 1.2);
+  }, target, LURKER.arriveSlowRadius, LURKER.arriveStopRadius);
 
-  lurker.acceleration.add(steer.multiplyScalar(0.9));
+  lurker.acceleration.add(steer.multiplyScalar(LURKER.returnWeight));
   applyTerminalInfluence(world, lurker);
 }
 
@@ -474,9 +476,11 @@ export function applyTerminalInfluence(world, lurker, prioritizeHackTerminal = f
       const seekForce = SteeringBehaviours.seek({
         position: lurker.position,
         velocity: lurker.velocity,
-        topSpeed: prioritizeHackTerminal ? 10.5 : 7.8,
+        topSpeed: prioritizeHackTerminal ? LURKER.chaseSpeed : LURKER.returnSpeed,
       }, world.player.hackTarget.position);
-      lurker.acceleration.add(seekForce.multiplyScalar(prioritizeHackTerminal ? 0.75 : 0.42));
+      lurker.acceleration.add(seekForce.multiplyScalar(
+        prioritizeHackTerminal ? LURKER.terminal.defendWeightWhileChasing : LURKER.terminal.defendWeight,
+      ));
     }
     return;
   }
@@ -496,46 +500,46 @@ export function applyTerminalInfluence(world, lurker, prioritizeHackTerminal = f
     }
   }
 
-  if (!closestTerminal || closestDistance > 8) {
+  if (!closestTerminal || closestDistance > LURKER.terminal.guardRadius) {
     return;
   }
 
   const fleeForce = SteeringBehaviours.flee({
     position: lurker.position,
     velocity: lurker.velocity,
-    topSpeed: 3.6,
+    topSpeed: LURKER.terminal.fleeSpeed,
   }, closestTerminal.position);
 
-  lurker.acceleration.add(fleeForce.multiplyScalar(0.35));
+  lurker.acceleration.add(fleeForce.multiplyScalar(LURKER.terminal.fleeWeight));
 }
 
 export function activateSwarmPursuit(world, position, duration) {
   for (const unit of world.lurkers) {
-    if (unit.position.distanceTo(position) <= 28) {
+    if (unit.position.distanceTo(position) <= LURKER.swarm.radius) {
       unit.state = LURKER_STATE.PURSUE;
       unit.huntTimer = Math.max(unit.huntTimer, duration);
-      unit.chaseBoostTimer = Math.max(unit.chaseBoostTimer || 0, 2.2);
+      unit.chaseBoostTimer = Math.max(unit.chaseBoostTimer || 0, LURKER.swarm.boostDuration);
     }
   }
 }
 
-export function callNearbyBackupLurkers(world, position, count = 2) {
+export function callNearbyBackupLurkers(world, position, count = LURKER.backup.count) {
   const nearby = world.lurkers
     .map((lurker) => ({ lurker, d: lurker.position.distanceTo(position) }))
-    .filter(({ lurker, d }) => d > 0 && d <= 40 && lurker.state !== LURKER_STATE.PURSUE)
+    .filter(({ lurker, d }) => d > 0 && d <= LURKER.backup.radius && lurker.state !== LURKER_STATE.PURSUE)
     .sort((a, b) => a.d - b.d)
     .slice(0, count);
 
   for (const { lurker } of nearby) {
     lurker.state = LURKER_STATE.PURSUE;
-    lurker.huntTimer = Math.max(lurker.huntTimer, 10);
-    lurker.chaseBoostTimer = Math.max(lurker.chaseBoostTimer || 0, 2.8);
+    lurker.huntTimer = Math.max(lurker.huntTimer, LURKER.huntDuration);
+    lurker.chaseBoostTimer = Math.max(lurker.chaseBoostTimer || 0, LURKER.backup.boostDuration);
     lurker.alertSprite.visible = true;
   }
 }
 
 export function applyLurkerSeparation(world, lurker, dt) {
-  const desired = 2.1;
+  const desired = LURKER.separationDistance;
   const separate = new THREE.Vector3();
   let count = 0;
 
@@ -556,7 +560,7 @@ export function applyLurkerSeparation(world, lurker, dt) {
 
   if (count > 0) {
     separate.divideScalar(count);
-    separate.setLength(7.2);
+    separate.setLength(LURKER.separationForce);
     lurker.acceleration.add(separate);
   }
 }
@@ -572,8 +576,9 @@ export function applyLurkerObstacleAvoidance(world, lurker) {
 
     const closest = ruin.bbox.clampPoint(lurker.position, new THREE.Vector3());
     const d = lurker.position.distanceTo(closest);
-    if (d > 0 && d < 3.4) {
-      const away = lurker.position.clone().sub(closest).normalize().multiplyScalar((3.4 - d) * 3.2);
+    if (d > 0 && d < LURKER.obstacleAvoidDistance) {
+      const push = (LURKER.obstacleAvoidDistance - d) * LURKER.obstacleAvoidStrength;
+      const away = lurker.position.clone().sub(closest).normalize().multiplyScalar(push);
       avoid.add(away);
       hits += 1;
     }
@@ -600,9 +605,9 @@ export function fireLurkerProjectile(world, lurker) {
 
   world.lurkerProjectiles.push({
     mesh: projectile,
-    velocity: dir.multiplyScalar(18),
-    life: 2.2,
-    damage: 4,
+    velocity: dir.multiplyScalar(LURKER.projectile.speed),
+    life: LURKER.projectile.lifetime,
+    damage: LURKER.projectile.damage,
     owner: lurker,
   });
 }
@@ -620,7 +625,7 @@ export function updateLurkerProjectiles(world, dt) {
     }
 
     const playerCore = world.player.entity.mesh.position.clone().add(new THREE.Vector3(0, 0.85, 0));
-    const hitPlayerByRadius = projectile.mesh.position.distanceTo(playerCore) <= 1.7;
+    const hitPlayerByRadius = projectile.mesh.position.distanceTo(playerCore) <= LURKER.projectile.hitRadius;
     const hitPlayerByBox = world.player.bbox
       ? world.player.bbox.clone().expandByScalar(-0.3).containsPoint(projectile.mesh.position)
       : false;
@@ -633,7 +638,7 @@ export function updateLurkerProjectiles(world, dt) {
       }
 
       world.player.health = Math.max(0, world.player.health - projectile.damage);
-      world.player.projectileInvulnTimer = 0.45;
+      world.player.projectileInvulnTimer = PLAYER.projectileInvulnerability;
       triggerPlayerHitReaction(world, 0.22);
       if (world.player.health <= 0) {
         world.endScreenType = 'over';
@@ -655,18 +660,18 @@ export function updateLurkerProjectiles(world, dt) {
 export function integrateLurker(world, lurker, dt) {
   lurker.acceleration.clampLength(0, lurker.maxForce);
   lurker.velocity.addScaledVector(lurker.acceleration, dt);
-  lurker.velocity.multiplyScalar(0.96);
+  lurker.velocity.multiplyScalar(LURKER.velocityDamping);
 
   lurker.chaseBoostTimer = Math.max(0, (lurker.chaseBoostTimer || 0) - dt);
 
-  let speedCap = lurker.topSpeed + (lurker.state === LURKER_STATE.PURSUE ? 4.5 : 0);
+  let speedCap = lurker.topSpeed + (lurker.state === LURKER_STATE.PURSUE ? LURKER.pursueSpeedBonus : 0);
   if (lurker.state === LURKER_STATE.PURSUE) {
     const swarmBoost = calculateSwarmSpeedBoost(world, lurker);
-    speedCap += (swarmBoost - 1) * 5.2;
+    speedCap += (swarmBoost - 1) * LURKER.swarm.speedPerBoost;
   }
 
   if ((lurker.chaseBoostTimer || 0) > 0) {
-    speedCap += 3.6;
+    speedCap += LURKER.chaseBoostSpeed;
   }
 
   lurker.velocity.clampLength(0, speedCap);
