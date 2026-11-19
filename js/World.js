@@ -67,7 +67,6 @@ export class World {
     this.map = new TileMap(1, { width: 140, depth: 140 }, this.rng);
 
     Setup.createLight(this.scene);
-    Setup.showHelpers(this.scene, this.camera, this.renderer, this.map);
 
     this.tileMapRenderer = new TileMapRenderer(this.map);
     this.tileMapRenderer.render(this.scene);

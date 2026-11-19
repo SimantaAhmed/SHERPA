@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // Creates and returns the scene
 export function createScene() {
@@ -39,19 +38,4 @@ export function createLight(scene) {
   const light = new THREE.DirectionalLight(0xffffff, 2);
   light.position.set(0, 5, 5);
   scene.add(light);
-}
-
-// Shows axesHelper, gridHelper, and OrbitControls
-export function showHelpers(scene, camera, renderer, levelMap) {
-  // Include an axes helper to understand our 3D world
-  // const axesHelper = new THREE.AxesHelper(100);
-  // scene.add(axesHelper);
-
-  // Add orbit controls
-  // Let's us fly around the scene
-  const orbitControls = new OrbitControls(camera, renderer.domElement);
-
-  // Add our grid helper so we can see the floor
-  const gridHelper = new THREE.GridHelper(levelMap.width, levelMap.depth);
-  scene.add(gridHelper);
 }
