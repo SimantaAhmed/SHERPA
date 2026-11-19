@@ -258,7 +258,8 @@ export function updateLurkers(world, dt) {
     const playerTile = world.map.quantize(world.player.position);
 
     const inBlackout = playerTile ? world.map.isBlackoutTile(playerTile) : false;
-    const detectionRange = lurker.detectionRange * (inBlackout ? 2 : 1);
+    const crouchScale = world.player.isCrouch ? 0.6 : 1;
+    const detectionRange = lurker.detectionRange * (inBlackout ? 2 : 1) * crouchScale;
     lurker.detectionCheckTimer = Math.max(0, (lurker.detectionCheckTimer || 0) - dt);
 
     if (lurker.state === LURKER_STATE.PURSUE || lurker.detectionCheckTimer <= 0) {
