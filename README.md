@@ -106,8 +106,8 @@ Each lurker computes a separation steering force against every other lurker with
 **How to see it:** Walk into a lurker's orange detection cone. A `!` sprite appears above its head. Break line-of-sight within about one second to cancel detection. If you don't, it escalates to pursuit and radios nearby units.
 
 Two parallel state machines:
-- **Player:** `MECH` ↔ `DRIVE` (press T), `HACKING` (hold E near terminal)
-- **Lurkers:** `PATROL` → `ALERT` → `PURSUE` → `RETURN`
+- **Player:** `MECH` <-> `DRIVE` (press T), `HACKING` (hold E near terminal)
+- **Lurkers:** `PATROL` -> `ALERT` -> `PURSUE` -> `RETURN`
 
 Implemented as a `switch` block in `updateLurkers` (`js/game/lurkers.js`).
 
