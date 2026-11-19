@@ -86,38 +86,6 @@ export class World {
     window.addEventListener('resize', () => this.handleResize());
   }
 
-  // Add sky, sun, and ambient lighting
-  // Returns a stylized material for cartoon-like shading
-  // Placeholder for applying toon shading recursively (not used)
-  // Generate decorative mountains around the map edge
-  // Make a bumpy, irregular mountain mesh
-  // Spawn the player at a random open tile
-  // Load the 3D model and animations for the mech
-  // Load the spaceship model for drive mode
-  // Start the animation and logic for switching between mech/drive
-  // Animate the transition between mech and drive modes
-  // Load the lurker (enemy) astronaut model
-  // Load decorative models for ruins (rocks, trees, etc.)
-  // Place ruins randomly on the map and mark them as obstacles
-  // Place hackable terminals at random open locations
-  // Load the 3D model for a server rack terminal
-  // Simple box used if the terminal model fails to load
-  // Spawn all lurker enemies at random walkable tiles
-  // Create a single lurker at a given tile
-  // Spawn extra lurkers near the player (e.g. when backup is called)
-  // Visualize the detection cone in front of a lurker
-  // Create the '!' alert icon above lurkers
-  // Place the secret healing character somewhere safe
-  // Place a decorative ship near the secret character
-  // Place the extraction ring at the map center
-  // Build the game's HUD and minimap
-  // Add atmospheric fog to the scene
-  // Smoothly blend fog color/density based on blackout zones
-  // LOD profiles for lurker AI/animation based on distance
-  // Always use the highest AI update rate for lurkers (no distance throttling)
-  // Adjust snow particle count/size for performance
-  // Spawn snow particles around the player
-  // Animate snow particles falling and drifting
   // Main game update loop (called every frame)
   update() {
     const dt = Math.min(this.clock.getDelta(), 0.033);
@@ -159,40 +127,7 @@ export class World {
 
     this.inputHandler.endFrame();
   }
-  // Throttled minimap update
-  // Redraw the minimap (throttled for performance)
-  // Handle player input for state changes, jumping, and crouching
-  // Move the player, apply speed penalties, and handle collisions
-  // Animate the player's jump arc
-  // Long jump for DRIVE mode
-  // (Unused) Placeholder for long jump logic
-  // Sync player animation state with movement and actions
-  // Flash the player red and play hit animation
-  // Update the player's mesh position, orientation, and bounding box
-  // Leave a track mark behind the player (drive mode)
-  // Fade out and remove old track marks
-  // Handle hacking logic and extraction unlock
-  // Animate the extraction ring and check for run completion
-  // Alert nearby lurkers to pursue the player
-  // Main AI loop for all lurkers (patrol, alert, pursue, return)
-  // Move a lurker along its patrol route
-  // Move a lurker toward the player using pathfinding and pursuit
-  // Give a speed boost to lurkers when swarming
-  // Guide a lurker back to its home position
-  // Make lurkers avoid or seek terminals depending on state
-  // Alert all lurkers in range to start hunting
-  // Trigger a group pursuit for all lurkers near a position
-  // Call a few nearby lurkers to join the pursuit
-  // Push lurkers apart to avoid crowding
-  // Steer lurkers away from ruins/obstacles
-  // Make a lurker shoot a projectile at the player
-  // Move and handle collisions for all lurker projectiles
-  // Apply acceleration, velocity, and movement to a lurker
-  // Animate and handle healing for the secret character
-  // Smoothly follow the player with the camera (supports free-look)
-  // Update all HUD elements and the minimap
-  // Render the minimap, showing player, lurkers, and objectives
-  // Convert a world position to minimap coordinates
+
   // Raycast to check if there is a clear line of sight
   hasLineOfSight(start, end) {
     const rayDirection = end.clone().sub(start);
