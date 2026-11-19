@@ -14,9 +14,24 @@ by Simanta Ahmed
 
 </div>
 
-Made for COMP 4303 (AI for Games) at Memorial University, Winter 2026. The AI
-is built on the in-class source pack, and [Credits](#credits) says what came
-from where.
+## At a Glance
+
+- **What it is:** a 3D stealth game that runs in a desktop browser with no install. Made for COMP 4303 (AI for Games) at Memorial University, Winter 2026.
+- **My role:** solo developer. I built the gameplay, enemy behaviour, HUD and minimap, level generation, and the build and deployment. The course provided the base pathfinding, steering and noise algorithms ([Credits](#credits) says exactly what came from where).
+- **Tech stack:** JavaScript (ES modules), Three.js, WebGL, Vite, GitHub Actions, GitHub Pages.
+- **Skills shown:** game AI (finite state machines, steering behaviours, Jump Point Search pathfinding, line-of-sight detection), procedural content generation (Perlin noise terrain, a seeded pseudorandom number generator), real-time 3D graphics, glTF models with skeletal animation, and automated deployment.
+
+**Where to look in the code**
+
+| What | File |
+|---|---|
+| Enemy AI: patrol, alert, pursue and return states, detection cones | [`js/game/lurkers.js`](js/game/lurkers.js) |
+| Player modes, movement and jumping | [`js/game/player.js`](js/game/player.js) |
+| Seeded random number generator | [`js/util/LCG.js`](js/util/LCG.js) |
+| Terrain, water and blackout zones from noise | [`js/maps/TileMap.js`](js/maps/TileMap.js) |
+| Jump Point Search pathfinding | [`js/ai/pathfinding/JPS.js`](js/ai/pathfinding/JPS.js) |
+
+## Story
 
 The term sherpa refers to a member of a Himalayan people living on the borders of Nepal and Tibet, renowned for their skill in mountaineering. The game takes place in one of the mountains of Nepal where you are infiltrating a ruin base full of Lurkers, aliens mining the mountain while damaging the landscape with a tar-like substance where man-made machines malfunction.
 
@@ -95,7 +110,7 @@ above serves.
 
 ---
 
-## Topics Implemented
+## Game AI Techniques
 
 ### 1. Complex Movement: Collision Avoidance
 **How to see it:** Get detected and let multiple lurkers chase you at once. They spread apart during pursuit rather than stacking on each other.
@@ -146,7 +161,7 @@ The LCG drives:
 
 The one exception is snow. It is cosmetic and respawns every frame, so it uses `Math.random()` and leaves the seeded sequence alone.
 
-This fulfills the course requirement for implementing a pseudorandom number generator beyond the built-in JavaScript random function.
+I wrote it instead of using `Math.random()` so a whole world can be rebuilt from a single number, which also makes bugs reproducible.
 
 **How to see it:** Change `const seed = Date.now()` in `main.js` to a fixed number (e.g. `12345`). Every restart then generates the same terrain, ruins, terminals, lurker spawns and secret character. Lurker behaviour still varies between runs: the AI draws from the same sequence, but when it draws depends on frame timing and on what you do.
 
@@ -217,7 +232,7 @@ Water tiles are walkable, but slow the player down significantly. When the playe
 If the player is moving and presses jump (`Space`), they leap forward in the direction they are facing. This works in both Mech and Drive modes (Drive mode uses a lower jump height). Useful for crossing water quickly or breaking a lurker's pursuit angle.
 
 ### Drive Mode Using Two Models
-Added a ship underneath the mech in Driver mode. I hope this was unique in itself.
+Drive Mode puts a ship model under the mech, combining two separate models into one vehicle with its own speed and jump settings.
 
 ---
 
