@@ -1,14 +1,53 @@
-# SHERPA - by Simanta Ahmed
+<div align="center">
 
-**Play it in the browser: https://simantaahmed.github.io/SHERPA/**
+# SHERPA
+
+**A third-person stealth infiltration game in the browser, built with Three.js**
+
+<img src="docs/media/drive.gif" alt="FOX switching from mech to drive mode and racing across the terrain" width="720">
+
+[![Play in browser](https://img.shields.io/badge/PLAY_IN_BROWSER-simantaahmed.github.io%2FSHERPA-e8692c?style=for-the-badge)](https://simantaahmed.github.io/SHERPA/)
+
+![Three.js](https://img.shields.io/badge/Three.js-0.180-black?logo=threedotjs) ![Vite](https://img.shields.io/badge/Vite-7-646cff?logo=vite&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-ES_modules-f7df1e?logo=javascript&logoColor=black) ![Course](https://img.shields.io/badge/COMP_4303-AI_for_Games-4a6fa5)
+
+by Simanta Ahmed
+
+</div>
 
 Made for COMP 4303 (AI for Games) at Memorial University, Winter 2026. The AI
 is built on the in-class source pack, and [Credits](#credits) says what came
 from where.
 
-A third-person stealth infiltration game built with Three.js. The term sherpa refers to a member of a Himalayan people living on the borders of Nepal and Tibet, renowned for their skill in mountaineering. The game takes place in one of the mountains of Nepal where you are infiltrating a ruin base full of Lurkers, aliens mining the mountain while damaging the landscape with a tar-like substance where man-made machines malfunction.
+The term sherpa refers to a member of a Himalayan people living on the borders of Nepal and Tibet, renowned for their skill in mountaineering. The game takes place in one of the mountains of Nepal where you are infiltrating a ruin base full of Lurkers, aliens mining the mountain while damaging the landscape with a tar-like substance where man-made machines malfunction.
 
 The player pilots a transformable mech called FOX across procedurally generated terrain. The objective each run is to locate and hack all corrupted data terminals, then reach the extraction point. The reason for doing this is to prevent the lurkers from digging out the mountains. The lurkers patrol the map and will pursue on detection. Health does not regenerate, and the full layout changes every run.
+
+## Gameplay
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/media/detect.gif" alt="Walking into a lurker's detection cone, getting shot, and escaping in drive mode" width="100%"><br>
+      <b>Get spotted</b><br>
+      <sub>Step into a lurker's cone and it raises the alarm, then opens fire.</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/media/hack.gif" alt="Holding E beside a server rack until the hack completes" width="100%"><br>
+      <b>Hack a terminal</b><br>
+      <sub>Hold E beside a server rack. Hacking calls nearby lurkers to you.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <img src="docs/media/extract.gif" alt="Reaching the blue extraction ring after the last terminal, ending on GAME CLEAR" width="70%"><br>
+      <b>Extract</b><br>
+      <sub>With every terminal hacked, reach the blue ring at the map centre to clear the run.</sub>
+    </td>
+  </tr>
+</table>
+
+<sub>The clips were recorded from the production build. A script sent the key
+presses, and the lurkers ran their normal AI.</sub>
 
 ---
 
