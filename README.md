@@ -55,7 +55,7 @@ The player pilots a transformable mech called FOX across procedurally generated 
   </tr>
   <tr>
     <td colspan="2" align="center">
-      <img src="docs/media/extract.gif" alt="Reaching the blue extraction ring after the last terminal, ending on GAME CLEAR" width="70%"><br>
+      <img src="docs/media/extract.gif" alt="FOX drives toward the blue extraction ring, switches to the mech and walks in, ending on GAME CLEAR" width="70%"><br>
       <b>Extract</b><br>
       <sub>With every terminal hacked, reach the blue ring at the map centre to clear the run.</sub>
     </td>
